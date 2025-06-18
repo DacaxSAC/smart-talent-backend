@@ -1,0 +1,43 @@
+# Ignorar directorios de dependencias
+node_modules/
+vendor/
+
+# Ignorar archivos de compilación y temporales
+build/
+dist/
+tmp/
+*.log
+*.tmp
+*.swp
+*.swo
+
+# Ignorar archivos de configuración sensibles
+.env
+.env.*
+
+# Ignorar archivos específicos del sistema operativo
+.DS_Store
+Thumbs.db
+
+# Ignorar archivos de IDE
+.idea/
+.vscode/
+*.iml
+
+# Ignorar archivos de caché
+.cache/
+
+# Ignorar archivos de pruebas
+coverage/
+
+# Ignorar archivos de paquetes
+*.zip
+*.tar.gz
+*.rar
+
+# Ignorar archivos de base de datos
+*.sqlite
+*.db
+
+# Firebase
+src/config/serviceAccountKey.json
