@@ -30,7 +30,9 @@ app.use(cors({
     'http://localhost:3000',
     'http://localhost:5173',
     'https://smart-talent-api-k6yj.onrender.com',
-    'https://front-smart-talent.vercel.app'
+    'https://front-smart-talent.vercel.app',
+    'https://smart-talent-api-4d1h.onrender.com',
+    'https://front-smart-talent.netlify.app'
   ],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
