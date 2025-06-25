@@ -56,15 +56,6 @@ const initDatabase = async () => {
         roleName: 'MANAGER'
       },
       {
-        username: 'user',
-        email: 'user@smarttalent.com',
-        password: 'User@123',
-        firstName: 'User',
-        lastName: 'Standard',
-        active: true,
-        roleName: 'USER'
-      },
-      {
         username: 'guest',
         email: 'guest@smarttalent.com',
         password: 'Guest@123',
