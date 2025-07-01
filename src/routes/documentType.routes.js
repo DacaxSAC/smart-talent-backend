@@ -4,7 +4,7 @@ const router = express.Router();
 
 /**
  * @swagger
- * /api/document-types-with-resource-types:
+ * /api/document-types/with-resource-types:
  *   get:
  *     tags:
  *       - Tipos de Documentos

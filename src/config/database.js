@@ -9,7 +9,7 @@ const sequelize = new Sequelize(process.env.DB_CONNECTION_STRING,
     port: process.env.POSTGRES_PORT || 5432,
     dialectOptions: {
       ssl: {
-        require: true, // Esto es necesario para forzar SSL
+        require: false, // Esto es necesario para forzar SSL
         rejectUnauthorized: false, // Esto puede ser necesario si tu CA no es de confianza
       },
     },
