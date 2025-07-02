@@ -64,7 +64,7 @@ app.get('/', (req, res) => {
 const connectDB = async () => {
   try {
     // Sincronizar modelos con la base de datos
-    await sequelize.sync({ alter: true });
+    await sequelize.sync();
     // Probar la conexión
     const connected = await testConnection();
     if (!connected) {
