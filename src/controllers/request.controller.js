@@ -1,50 +1,55 @@
-const { Request, Person, Document, Resource, Entity, DocumentType, ResourceType } = require('../models');
 const { validationResult } = require('express-validator');
-const { sequelize } = require('../config/database');
 const RequestService = require('../services/request.service');
 
 const RequestController = {
-  // Crear una nueva solicitud con personas, documentos y recursos
   create: async (req, res) => {
     try {
+      // Validar entrada
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
         return res.status(400).json({ errors: errors.array() });
       }
 
-      const request = await RequestService.createRequest(req.body);
+      const result = await RequestService.createRequest(req.body);
 
-      res.status(201).json({
-        message: 'Solicitud creada exitosamente',
-        requestId: request.id
-      });
+      res.status(201).json(result);
     } catch (error) {
       console.error('Error al crear solicitud:', error);
       const statusCode = error.message === 'Entidad no encontrada' ? 404 : 500;
-      res.status(statusCode).json({ message: error.message });
+      res.status(statusCode).json({ 
+        message: error.message === 'Entidad no encontrada' ? error.message : 'Error al crear la solicitud', 
+        error: error.message 
+      });
     }
   },
 
-  // Obtener todas las personas de una entidad específica con sus solicitudes, documentos y recursos
-  getAllPersonsByEntityId: async (req, res) => {
+  // Obtener personas por entidad
+  getPersonsByEntity: async (req, res) => {
     try {
       const { entityId } = req.params;
-      const peopleWithStatus = await RequestService.getPersonsByEntityId(entityId);
-      res.status(200).json(peopleWithStatus);
+      const result = await RequestService.getPersonsByEntityId(entityId);
+      res.status(200).json(result);
     } catch (error) {
-      console.error('Error al obtener personas por entidad:', error);
-      res.status(500).json({ message: error.message });
+      console.error('Error al obtener personas:', error);
+      const statusCode = error.message === 'Entidad no encontrada' ? 404 : 500;
+      res.status(statusCode).json({ 
+        message: error.message === 'Entidad no encontrada' ? error.message : 'Error al obtener las personas', 
+        error: error.message 
+      });
     }
   },
 
-  // Obtener todas las personas con sus entidades, documentos y recursos
+  // Obtener todas las personas con su entidad
   getAllPeople: async (req, res) => {
     try {
-      const peopleWithEntities = await RequestService.getAllPeopleWithEntities();
-      res.status(200).json(peopleWithEntities);
+      const result = await RequestService.getAllPeopleWithEntities();
+      res.status(200).json(result);
     } catch (error) {
-      console.error('Error al obtener todas las personas:', error);
-      res.status(500).json({ message: error.message });
+      console.error('Error al obtener personas:', error);
+      res.status(500).json({ 
+        message: 'Error al obtener las personas', 
+        error: error.message 
+      });
     }
   }
 };

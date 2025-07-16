@@ -61,23 +61,19 @@ const EntityController = {
       });
     } catch (error) {
       console.error('Error al actualizar entidad:', error);
-      const statusCode = error.message.includes('no encontrada') ? 404 : 
-                        error.message.includes('Ya existe') ? 400 : 500;
+      const statusCode = error.message === 'Entidad no encontrada' ? 404 : 
+                        error.message === 'Ya existe una entidad con este número de documento' ? 400 : 500;
       res.status(statusCode).json({ message: error.message });
     }
   },
 
-  // Eliminar una entidad (soft delete)
+  // Eliminar una entidad
   delete: async (req, res) => {
     try {
-      const entity = await EntityService.deleteEntity(req.params.id);
-
-      res.status(200).json({
-        message: 'Entidad desactivada exitosamente',
-        entity
-      });
+      await EntityService.deleteEntity(req.params.id);
+      res.status(200).json({ message: 'Entidad eliminada exitosamente' });
     } catch (error) {
-      console.error('Error al desactivar entidad:', error);
+      console.error('Error al eliminar entidad:', error);
       const statusCode = error.message === 'Entidad no encontrada' ? 404 : 500;
       res.status(statusCode).json({ message: error.message });
     }

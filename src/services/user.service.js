@@ -2,182 +2,161 @@ const { User, Role } = require('../models');
 const { Op } = require('sequelize');
 
 const UserService = {
-  /**
-   * Crea un nuevo usuario con roles específicos
-   */
   async createUser(userData) {
-    const { username, email, password, roles } = userData;
+    const { username, email, password, roleIds } = userData;
 
     // Verificar si el usuario ya existe
     const userExists = await User.findOne({
       where: {
-        [Op.or]: [{ email: email }, { username: username }],
-        active: true
+        [Op.or]: [{ email: email }, { username: username }]
       }
     });
-    
     if (userExists) {
       throw new Error('El usuario o correo electrónico ya está registrado');
     }
 
-    // Obtener roles
-    let userRoles = [];
-    if (roles && roles.length > 0) {
-      const foundRoles = await Role.findAll({
-        where: {
-          name: {
-            [Op.in]: roles
-          }
-        }
-      });
-      userRoles = foundRoles;
-    } else {
-      // Rol por defecto
-      const defaultRole = await Role.findOne({ where: { name: 'USER' } });
-      if (defaultRole) {
-        userRoles = [defaultRole];
-      }
-    }
-
-    // Crear usuario
+    // Crear el usuario
     const user = await User.create({
       username,
       email,
       password,
+      active: true
     });
 
-    // Asignar roles
-    if (userRoles.length > 0) {
-      await user.setRoles(userRoles);
+    // Asignar roles si se proporcionan
+    if (roleIds && roleIds.length > 0) {
+      const roles = await Role.findAll({
+        where: { id: roleIds }
+      });
+      await user.setRoles(roles);
+    } else {
+      // Asignar rol por defecto
+      const defaultRole = await Role.findOne({ where: { name: 'USER' } });
+      if (defaultRole) {
+        await user.setRoles([defaultRole]);
+      }
     }
 
-    // Obtener usuario con roles
+    // Obtener el usuario con roles
     const userWithRoles = await User.findByPk(user.id, {
+      attributes: { exclude: ['password'] },
       include: [{
         model: Role,
-        attributes: ['name', 'description'],
+        attributes: ['id', 'name'],
         through: { attributes: [] }
       }]
     });
 
     return {
-      id: userWithRoles.id,
-      username: userWithRoles.username,
-      email: userWithRoles.email,
-      roles: userWithRoles.Roles.map(role => role.name)
+      message: 'Usuario creado exitosamente',
+      user: userWithRoles
     };
   },
 
-  /**
-   * Obtiene todos los usuarios activos
-   */
   async getAllUsers() {
     const users = await User.findAll({
       attributes: { exclude: ['password'] },
-      where: { active: true },
       include: [{
         model: Role,
-        attributes: ['name', 'description'],
-        through: { attributes: [] }
-      }]
-    });
-
-    return users;
-  },
-
-  /**
-   * Obtiene un usuario por ID
-   */
-  async getUserById(userId) {
-    const user = await User.findByPk(userId, {
-      attributes: { exclude: ['password'] },
-      where: { active: true },
-      include: [{
-        model: Role,
-        attributes: ['name', 'description'],
-        through: { attributes: [] }
-      }]
-    });
-
-    if (!user) {
-      throw new Error('Usuario no encontrado');
-    }
-
-    return user;
-  },
-
-  /**
-   * Actualiza un usuario
-   */
-  async updateUser(userId, updateData) {
-    const { firstName, lastName, roles } = updateData;
-
-    // Buscar usuario
-    const user = await User.findOne({ 
-      where: { id: userId, active: true } 
-    });
-    
-    if (!user) {
-      throw new Error('Usuario no encontrado');
-    }
-
-    // Actualizar roles si se proporcionan
-    if (roles && roles.length > 0) {
-      const userRoles = await Role.findAll({
-        where: {
-          name: {
-            [Op.in]: roles
-          }
-        }
-      });
-      await user.setRoles(userRoles);
-    }
-
-    // Actualizar datos básicos
-    user.firstName = firstName !== undefined ? firstName : user.firstName;
-    user.lastName = lastName !== undefined ? lastName : user.lastName;
-    
-    await user.save();
-
-    // Obtener usuario actualizado con roles
-    const userWithRoles = await User.findByPk(user.id, {
-      include: [{
-        model: Role,
-        attributes: ['name', 'description'],
+        attributes: ['id', 'name'],
         through: { attributes: [] }
       }]
     });
 
     return {
-      id: userWithRoles.id,
-      username: userWithRoles.username,
-      email: userWithRoles.email,
-      firstName: userWithRoles.firstName,
-      lastName: userWithRoles.lastName,
-      roles: userWithRoles.Roles.map(role => role.name)
+      message: 'Usuarios obtenidos exitosamente',
+      users
     };
   },
 
-  /**
-   * Desactiva un usuario (soft delete)
-   */
-  async deactivateUser(userId) {
-    const user = await User.findOne({ 
-      where: { id: userId, active: true } 
+  async getUserById(id) {
+    const user = await User.findByPk(id, {
+      attributes: { exclude: ['password'] },
+      include: [{
+        model: Role,
+        attributes: ['id', 'name'],
+        through: { attributes: [] }
+      }]
     });
-    
+
     if (!user) {
       throw new Error('Usuario no encontrado');
     }
 
-    user.active = false;
-    await user.save();
+    return {
+      message: 'Usuario obtenido exitosamente',
+      user
+    };
+  },
+
+  async updateUser(id, updateData) {
+    const user = await User.findByPk(id);
+    if (!user) {
+      throw new Error('Usuario no encontrado');
+    }
+
+    // Verificar si el nuevo email o username ya existe en otro usuario
+    if (updateData.email || updateData.username) {
+      const whereConditions = [];
+      if (updateData.email) {
+        whereConditions.push({ email: updateData.email });
+      }
+      if (updateData.username) {
+        whereConditions.push({ username: updateData.username });
+      }
+
+      const existingUser = await User.findOne({
+        where: {
+          [Op.and]: [
+            { [Op.or]: whereConditions },
+            { id: { [Op.ne]: id } }
+          ]
+        }
+      });
+      if (existingUser) {
+        throw new Error('El usuario o correo electrónico ya está registrado');
+      }
+    }
+
+    // Actualizar el usuario
+    await User.update(updateData, {
+      where: { id }
+    });
+
+    // Actualizar roles si se proporcionan
+    if (updateData.roleIds) {
+      const roles = await Role.findAll({
+        where: { id: updateData.roleIds }
+      });
+      await user.setRoles(roles);
+    }
+
+    // Obtener el usuario actualizado
+    const updatedUser = await User.findByPk(id, {
+      attributes: { exclude: ['password'] },
+      include: [{
+        model: Role,
+        attributes: ['id', 'name'],
+        through: { attributes: [] }
+      }]
+    });
 
     return {
-      id: user.id,
-      username: user.username,
-      email: user.email,
-      active: user.active
+      message: 'Usuario actualizado exitosamente',
+      user: updatedUser
+    };
+  },
+
+  async deleteUser(id) {
+    const user = await User.findByPk(id);
+    if (!user) {
+      throw new Error('Usuario no encontrado');
+    }
+
+    await user.destroy();
+
+    return {
+      message: 'Usuario eliminado exitosamente'
     };
   }
 };

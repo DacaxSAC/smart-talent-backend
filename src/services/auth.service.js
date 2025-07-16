@@ -3,9 +3,6 @@ const { Op } = require('sequelize');
 const jwt = require('jsonwebtoken');
 
 const AuthService = {
-  /**
-   * Registra un nuevo usuario con rol por defecto
-   */
   async registerUser(userData) {
     const { username, email, password } = userData;
 
@@ -15,28 +12,27 @@ const AuthService = {
         [Op.or]: [{ email: email }, { username: username }]
       }
     });
-    
     if (userExists) {
       throw new Error('El usuario o correo electrónico ya está registrado');
     }
 
-    // Obtener rol por defecto
+    // Obtener el rol por defecto
     const defaultRole = await Role.findOne({ where: { name: 'USER' } });
     if (!defaultRole) {
       throw new Error('Error al asignar rol por defecto: Rol USER no encontrado');
     }
 
-    // Crear usuario
+    // Crear el usuario
     const user = await User.create({
       username,
       email,
       password,
     });
 
-    // Asignar rol
+    // Asignar rol al usuario
     await user.setRoles([defaultRole]);
 
-    // Obtener usuario con roles
+    // Obtener el usuario con roles
     const userWithRoles = await User.findByPk(user.id, {
       include: [{
         model: Role,
@@ -48,30 +44,26 @@ const AuthService = {
     const roleNames = userWithRoles.Roles.map(role => role.name);
 
     // Generar token
-    const token = this.generateToken(userWithRoles.id, roleNames);
+    const token = this.generateToken(user.id, roleNames);
 
     return {
-      token,
+      message: 'Usuario registrado exitosamente',
       user: {
-        id: userWithRoles.id,
-        username: userWithRoles.username,
-        email: userWithRoles.email,
-        entityId: userWithRoles.entityId,
+        id: user.id,
+        username: user.username,
+        email: user.email,
         roles: roleNames
-      }
+      },
+      token
     };
   },
 
-  /**
-   * Autentica un usuario
-   */
   async loginUser(credentials) {
     const { email, password } = credentials;
 
-    // Buscar usuario con roles
+    // Buscar usuario por email
     const user = await User.findOne({
-      where: { email: email },
-      attributes: { include: ['password'] },
+      where: { email },
       include: [{
         model: Role,
         attributes: ['name'],
@@ -84,36 +76,33 @@ const AuthService = {
     }
 
     // Verificar contraseña
-    const isMatch = await user.comparePassword(password);
-    if (!isMatch) {
+    const isPasswordValid = await user.validatePassword(password);
+    if (!isPasswordValid) {
       throw new Error('Credenciales inválidas');
     }
 
-    // Verificar si está activo
+    // Verificar si el usuario está activo
     if (!user.active) {
-      throw new Error('Usuario desactivado. Contacte al administrador');
+      throw new Error('Usuario inactivo');
     }
 
     const roleNames = user.Roles.map(role => role.name);
+
+    // Generar token
     const token = this.generateToken(user.id, roleNames);
 
     return {
-      token,
+      message: 'Inicio de sesión exitoso',
       user: {
         id: user.id,
         username: user.username,
         email: user.email,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        entityId: user.entityId,
         roles: roleNames
-      }
+      },
+      token
     };
   },
 
-  /**
-   * Obtiene el perfil de un usuario
-   */
   async getUserProfile(userId) {
     const user = await User.findByPk(userId, {
       attributes: { exclude: ['password'] },
@@ -132,21 +121,18 @@ const AuthService = {
       id: user.id,
       username: user.username,
       email: user.email,
-      roles: user.Roles.map(role => ({ 
-        name: role.name, 
-        description: role.description 
-      }))
+      roles: user.Roles.map(role => ({ name: role.name, description: role.description }))
     };
   },
 
-  /**
-   * Genera un token JWT
-   */
   generateToken(userId, roles) {
     return jwt.sign(
-      { id: userId, roles: roles },
+      { 
+        userId: userId, 
+        roles: roles 
+      },
       process.env.JWT_SECRET,
-      { expiresIn: process.env.JWT_EXPIRE }
+      { expiresIn: '24h' }
     );
   }
 };

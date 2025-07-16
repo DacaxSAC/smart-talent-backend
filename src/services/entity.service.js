@@ -1,69 +1,77 @@
 const { Entity, User, Role } = require('../models');
-const bcrypt = require('bcryptjs');
 const { Op } = require('sequelize');
 
-class EntityService {
-  // Crear entidad con usuario asociado
-  static async createEntityWithUser(entityData) {
-    const { documentNumber, entityType, businessName, legalRepresentative, email, phone, address } = entityData;
+const EntityService = {
+  async createEntityWithUser(data) {
+    const {
+      type,
+      documentNumber,
+      firstName,
+      paternalSurname,
+      maternalSurname,
+      address,
+      phone,
+      businessName,
+      email
+    } = data;
 
-    // Verificar si ya existe una entidad con el mismo número de documento
-    const existingEntity = await Entity.findOne({ where: { documentNumber } });
-    if (existingEntity) {
+    // Verificar si la entidad ya existe por documento
+    const entityExists = await Entity.findOne({ where: { documentNumber } });
+    if (entityExists) {
       throw new Error('Ya existe una entidad con este número de documento');
     }
 
-    // Verificar si ya existe un usuario con el mismo email
-    const existingUser = await User.findOne({ where: { email } });
-    if (existingUser) {
+    // Verificar si ya existe un usuario con ese email
+    const userExists = await User.findOne({
+      where: { email, active: true }
+    });
+    if (userExists) {
       throw new Error('Ya existe un usuario con este email');
     }
 
-    // Crear la entidad
+    // Crear nueva entidad
     const entity = await Entity.create({
+      type,
       documentNumber,
-      entityType,
+      firstName,
+      paternalSurname,
+      maternalSurname,
       businessName,
-      legalRepresentative,
-      email,
+      address,
       phone,
-      address
+      active: true
     });
 
-    // Buscar el rol 'USER'
+    // Obtener el rol USER
     const userRole = await Role.findOne({ where: { name: 'USER' } });
     if (!userRole) {
-      throw new Error('Rol USER no encontrado');
+      throw new Error('Error al asignar rol: Rol USER no encontrado');
     }
 
-    // Crear usuario asociado con el número de documento como contraseña inicial
-    const hashedPassword = await bcrypt.hash(documentNumber, 10);
+    // Crear usuario asociado
     const user = await User.create({
-      username: email,
+      username: type === 'NATURAL'
+        ? `${firstName} ${paternalSurname} ${maternalSurname}`
+        : businessName,
       email,
-      password: hashedPassword,
-      firstName: legalRepresentative,
-      lastName: '',
+      password: documentNumber, // La contraseña será el DNI o RUC
+      active: true,
       entityId: entity.id
     });
 
     // Asignar rol al usuario
-    await user.addRole(userRole);
+    await user.setRoles([userRole]);
 
     return {
       entity,
       user: {
-        id: user.id,
-        username: user.username,
         email: user.email,
-        firstName: user.firstName,
-        lastName: user.lastName
+        username: user.username
       }
     };
-  }
+  },
 
-  // Obtener todas las entidades
-  static async getAllEntities() {
+  async getAllEntities() {
     return await Entity.findAll({
       include: [{
         model: User,
@@ -76,10 +84,9 @@ class EntityService {
         }]
       }]
     });
-  }
+  },
 
-  // Obtener entidad por ID
-  static async getEntityById(id) {
+  async getEntityById(id) {
     const entity = await Entity.findByPk(id, {
       include: [{
         model: User,
@@ -98,76 +105,59 @@ class EntityService {
     }
 
     return entity;
-  }
+  },
 
-  // Actualizar entidad
-  static async updateEntity(id, updateData) {
-    const { documentNumber, entityType, businessName, legalRepresentative, email, phone, address } = updateData;
-
+  async updateEntity(id, updateData) {
     const entity = await Entity.findByPk(id);
     if (!entity) {
       throw new Error('Entidad no encontrada');
     }
 
-    // Verificar si el nuevo número de documento ya existe (si se está cambiando)
-    if (documentNumber && documentNumber !== entity.documentNumber) {
-      const existingEntity = await Entity.findOne({ 
-        where: { 
-          documentNumber,
+    // Verificar si el documento ya existe en otra entidad
+    if (updateData.documentNumber) {
+      const existingEntity = await Entity.findOne({
+        where: {
+          documentNumber: updateData.documentNumber,
           id: { [Op.ne]: id }
-        } 
+        }
       });
       if (existingEntity) {
         throw new Error('Ya existe una entidad con este número de documento');
       }
     }
 
-    // Actualizar campos
-    entity.documentNumber = documentNumber !== undefined ? documentNumber : entity.documentNumber;
-    entity.entityType = entityType !== undefined ? entityType : entity.entityType;
-    entity.businessName = businessName !== undefined ? businessName : entity.businessName;
-    entity.legalRepresentative = legalRepresentative !== undefined ? legalRepresentative : entity.legalRepresentative;
-    entity.email = email !== undefined ? email : entity.email;
-    entity.phone = phone !== undefined ? phone : entity.phone;
-    entity.address = address !== undefined ? address : entity.address;
+    // Actualizar la entidad
+    await Entity.update(updateData, {
+      where: { id }
+    });
 
-    await entity.save();
+    // Obtener la entidad actualizada
+    const updatedEntity = await Entity.findByPk(id);
 
-    // Si hay un usuario asociado y se cambió el email o representante legal, actualizar usuario
-    if (entity.userId && (email || legalRepresentative)) {
+    // Si se proporciona email, actualizar el usuario asociado
+    if (updateData.email && entity.userId) {
       const user = await User.findByPk(entity.userId);
       if (user) {
-        if (email) {
-          user.email = email;
-          user.username = email;
-        }
-        if (legalRepresentative) {
-          user.firstName = legalRepresentative;
-        }
+        user.email = updateData.email;
+        user.username = updateData.type === 'NATURAL' 
+          ? `${updateData.firstName || entity.firstName} ${updateData.paternalSurname || entity.paternalSurname} ${updateData.maternalSurname || entity.maternalSurname}`
+          : updateData.businessName || entity.businessName;
         await user.save();
       }
     }
 
-    return entity;
-  }
+    return updatedEntity;
+  },
 
-  // Eliminar entidad (soft delete)
-  static async deleteEntity(id) {
+  async deleteEntity(id) {
     const entity = await Entity.findByPk(id);
     if (!entity) {
       throw new Error('Entidad no encontrada');
     }
 
-    entity.isActive = false;
-    await entity.save();
-
-    return {
-      id: entity.id,
-      documentNumber: entity.documentNumber,
-      businessName: entity.businessName,
-      isActive: entity.isActive
-    };
+    await entity.destroy();
+    return { message: 'Entidad eliminada exitosamente' };
   }
-}
+};
 
 module.exports = EntityService;

@@ -1,4 +1,3 @@
-const { Role, User } = require('../models');
 const { validationResult } = require('express-validator');
 const RoleService = require('../services/role.service');
 
@@ -6,6 +5,7 @@ const RoleController = {
   // Crear un nuevo rol
   create: async (req, res) => {
     try {
+      // Verificar errores de validación
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
         return res.status(400).json({ errors: errors.array() });
@@ -50,6 +50,7 @@ const RoleController = {
   // Actualizar un rol
   update: async (req, res) => {
     try {
+      // Verificar errores de validación
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
         return res.status(400).json({ errors: errors.array() });
@@ -64,8 +65,8 @@ const RoleController = {
     } catch (error) {
       console.error('Error al actualizar rol:', error);
       const statusCode = error.message === 'Rol no encontrado' ? 404 : 
-                        error.message.includes('predeterminado') || 
-                        error.message.includes('Ya existe') ? 400 : 500;
+                        error.message.includes('No se puede modificar') ? 400 : 
+                        error.message === 'El nombre del rol ya existe' ? 400 : 500;
       res.status(statusCode).json({ message: error.message });
     }
   },
@@ -73,13 +74,12 @@ const RoleController = {
   // Eliminar un rol
   delete: async (req, res) => {
     try {
-      const result = await RoleService.deleteRole(req.params.id);
-      res.status(200).json(result);
+      await RoleService.deleteRole(req.params.id);
+      res.status(200).json({ message: 'Rol eliminado exitosamente' });
     } catch (error) {
       console.error('Error al eliminar rol:', error);
       const statusCode = error.message === 'Rol no encontrado' ? 404 : 
-                        error.message.includes('predeterminado') || 
-                        error.message.includes('usuarios asignados') ? 400 : 500;
+                        error.message.includes('No se puede eliminar') ? 400 : 500;
       res.status(statusCode).json({ message: error.message });
     }
   }

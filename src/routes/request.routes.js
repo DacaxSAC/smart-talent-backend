@@ -136,7 +136,7 @@ router.post('/', [
 router.get('/entity/:entityId/people', [
   authMiddleware,
   roleMiddleware(['USER'])
-], RequestController.getAllPersonsByEntityId);
+], RequestController.getPersonsByEntity);
 
 /**
  * @swagger
