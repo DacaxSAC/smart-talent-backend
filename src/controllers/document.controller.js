@@ -1,40 +1,29 @@
 const { Document } = require('../models');
+const { validationResult } = require('express-validator');
+const { sequelize } = require('../config/database');
+const DocumentService = require('../services/document.service');
 
 const DocumentController = {
   // ... existing code ...
-// WARNING: Falta trasaction
+// Actualizar múltiples documentos
   updateMultiple: async (req, res) => {
     try {
-      const { updates } = req.body; // [{ id, result, filename }, ...]
-
-      if (!Array.isArray(updates) || updates.length === 0) {
-        return res.status(400).json({ message: 'Se requiere un array de actualizaciones.' });
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res.status(400).json({ errors: errors.array() });
       }
 
-      const results = [];
-      for (const update of updates) {
-        const { id, result, filename } = update;
-        const document = await Document.findByPk(id);
-        if (!document) {
-          results.push({ id, status: 'not found' });
-          continue;
-        }
-        if (result !== undefined) document.result = result;
-        if (filename !== undefined) {
-          document.filename = filename;
-          document.status = 'Realizado'
-        }
-        await document.save();
-        results.push({ id, status: 'updated' });
-      }
+      const updatedDocuments = await DocumentService.updateMultipleDocuments(req.body.documents);
 
       res.status(200).json({
-        message: 'Actualización masiva completada',
-        results
+        message: 'Documentos actualizados exitosamente',
+        documents: updatedDocuments
       });
     } catch (error) {
       console.error('Error al actualizar documentos:', error);
-      res.status(500).json({ message: 'Error al actualizar documentos', error: error.message });
+      const statusCode = error.message.includes('no encontrado') ? 404 : 
+                        error.message.includes('al menos un documento') ? 400 : 500;
+      res.status(statusCode).json({ message: error.message });
     }
   },
 
