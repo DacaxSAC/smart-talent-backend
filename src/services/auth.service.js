@@ -76,7 +76,7 @@ const AuthService = {
     }
 
     // Verificar contraseña
-    const isPasswordValid = await user.validatePassword(password);
+    const isPasswordValid = await user.comparePassword(password);
     if (!isPasswordValid) {
       throw new Error('Credenciales inválidas');
     }
