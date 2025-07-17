@@ -15,16 +15,16 @@ const authMiddleware = async (req, res, next) => {
 
     // Verificar token
     const decoded = jwt.verify(tokenValue, process.env.JWT_SECRET);
-    
+
     // Verificar si el usuario existe
-    const user = await User.findByPk(decoded.id, {
+    const user = await User.findByPk(decoded.userId, {
       attributes: { exclude: ['password'] },
       include: [{
         model: Role,
         through: { attributes: [] } // No incluir atributos de la tabla intermedia
       }]
     });
-    
+
     if (!user) {
       return res.status(401).json({ message: 'Usuario no encontrado' });
     }
