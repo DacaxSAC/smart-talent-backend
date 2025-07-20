@@ -72,18 +72,27 @@ const AuthService = {
     });
 
     if (!user) {
-      throw new Error('Credenciales inválidas');
+      return {
+        success: false,
+        message: 'Credenciales inválidas'
+      };
     }
 
     // Verificar contraseña
     const isPasswordValid = await user.comparePassword(password);
     if (!isPasswordValid) {
-      throw new Error('Credenciales inválidas');
+      return {
+        success: false,
+        message: 'Credenciales inválidas'
+      };
     }
 
     // Verificar si el usuario está activo
     if (!user.active) {
-      throw new Error('Usuario inactivo');
+      return {
+        success: false,
+        message: 'Usuario inactivo'
+      };
     }
 
     const roleNames = user.Roles.map(role => role.name);
@@ -92,6 +101,7 @@ const AuthService = {
     const token = this.generateToken(user.id, roleNames);
 
     return {
+      success: true,
       message: 'Inicio de sesión exitoso',
       user: {
         id: user.id,
