@@ -1,9 +1,12 @@
 const { User, Role } = require('../models');
 const { Op } = require('sequelize');
+const PasswordGenerator = require('../utils/passwordGenerator');
+const sendEmailCreateUser = require('./email.service');
+
 
 const UserService = {
   async createUser(userData) {
-    const { username, email, password, roleIds } = userData;
+    const { username, email, roleIds} = userData;
 
     // Verificar si el usuario ya existe
     const userExists = await User.findOne({
@@ -15,11 +18,13 @@ const UserService = {
       throw new Error('El usuario o correo electrónico ya está registrado');
     }
 
+    // Generar contraseña si no se proporciona
+    const userPassword = PasswordGenerator.generateSecure(12);
     // Crear el usuario
     const user = await User.create({
       username,
       email,
-      password,
+      password: userPassword,
       active: true
     });
 
@@ -46,6 +51,8 @@ const UserService = {
         through: { attributes: [] }
       }]
     });
+
+    await sendEmailCreateUser(user.email, userPassword);
 
     return {
       message: 'Usuario creado exitosamente',

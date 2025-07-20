@@ -28,7 +28,6 @@ const { userValidation } = require('../middleware/validation.middleware');
  *             required:
  *               - username
  *               - email
- *               - password
  *             properties:
  *               username:
  *                 type: string
@@ -37,10 +36,6 @@ const { userValidation } = require('../middleware/validation.middleware');
  *                 type: string
  *                 format: email
  *                 description: Correo electrónico del usuario
- *               password:
- *                 type: string
- *                 format: password
- *                 description: Contraseña del usuario
  *               roles:
  *                 type: array
  *                 items:
