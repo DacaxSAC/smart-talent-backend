@@ -69,7 +69,7 @@ const UserController = {
   // Eliminar un usuario (soft delete)
   delete: async (req, res) => {
     try {
-      const user = await UserService.deactivateUser(req.params.id);
+      const user = await UserService.deleteUser(req.params.id);
 
       res.status(200).json({
         message: 'Usuario desactivado exitosamente',

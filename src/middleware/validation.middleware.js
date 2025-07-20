@@ -6,7 +6,7 @@ const userValidation = {
     check('username', 'El nombre de usuario es obligatorio').not().isEmpty(),
     check('username', 'El nombre de usuario debe tener al menos 3 caracteres').isLength({ min: 3 }),
     check('email', 'Por favor incluya un email válido').isEmail(),
-    check('password', 'Por favor ingrese una contraseña con 6 o más caracteres').isLength({ min: 6 })
+    //check('password', 'La contraseña es opcional y debe tener al menos 6 caracteres').optional().isLength({ min: 6 })
   ],
   
   update: [
@@ -20,7 +20,7 @@ const authValidation = {
     check('username', 'El nombre de usuario es obligatorio').not().isEmpty(),
     check('username', 'El nombre de usuario debe tener al menos 3 caracteres').isLength({ min: 3 }),
     check('email', 'Por favor incluya un email válido').isEmail(),
-    check('password', 'Por favor ingrese una contraseña con 6 o más caracteres').isLength({ min: 6 })
+    check('password', 'La contraseña es opcional y debe tener al menos 6 caracteres').optional().isLength({ min: 6 })
   ],
   
   login: [
