@@ -1,5 +1,6 @@
 const transporter = require('../config/email.config');
 const TemplateEngine = require('../utils/templateEngine');
+const { FRONTEND_URL, USER_EMAIL } = require('../config/env-variable');
 require('dotenv').config();
 
 const templateEngine = new TemplateEngine();
@@ -18,7 +19,7 @@ async function sendEmailCreateUser(to, password, templateType = 'welcome') {
         const variables = {
             email: to,
             password: password,
-            frontend_url: process.env.FRONTEND_URL || 'http://localhost:3000'
+            frontend_url: FRONTEND_URL,
         };
         console.log(variables);
         // Renderizar plantilla
@@ -34,7 +35,7 @@ async function sendEmailCreateUser(to, password, templateType = 'welcome') {
 
 async function sendEmail(to, subject, text) {
     const mailOptions = {
-      from: process.env.EMAIL_USER,
+      from: USER_EMAIL,
       to,
       subject,
       text,
@@ -48,7 +49,7 @@ async function sendEmail(to, subject, text) {
 
 async function sendEmailHTML(to, subject, html) {
     const mailOptions = {
-      from: process.env.EMAIL_USER,
+      from: USER_EMAIL,
       to,
       subject,
       html,
@@ -75,7 +76,7 @@ async function sendEmailResetPassword(to, username, resetUrl, templateType = 're
             username: username,
             email: to,
             reset_url: resetUrl,
-            frontend_url: process.env.FRONTEND_URL || 'http://localhost:3000'
+            frontend_url: FRONTEND_URL,
         };
         
         // Renderizar plantilla

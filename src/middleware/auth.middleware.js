@@ -1,5 +1,6 @@
 const jwt = require('jsonwebtoken');
 const { User, Role } = require('../models');
+const { JWT_SECRET } = require('../config/env-variable')
 
 // Middleware para verificar token JWT
 const authMiddleware = async (req, res, next) => {
@@ -14,7 +15,7 @@ const authMiddleware = async (req, res, next) => {
     const tokenValue = token.startsWith('Bearer ') ? token.slice(7, token.length) : token;
 
     // Verificar token
-    const decoded = jwt.verify(tokenValue, process.env.JWT_SECRET);
+    const decoded = jwt.verify(tokenValue, JWT_SECRET);
 
     // Verificar si el usuario existe
     const user = await User.findByPk(decoded.userId, {

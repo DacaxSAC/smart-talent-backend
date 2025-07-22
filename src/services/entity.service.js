@@ -1,8 +1,8 @@
-const { Entity, User, Role } = require('../models');
 const { Op } = require('sequelize');
+const { Entity, User, Role } = require('../models');
+const { sendEmailCreateUser } = require('./email.service');
 const { sequelize } = require('../config/database');
 const PasswordGenerator = require('../utils/passwordGenerator');
-const { sendEmailCreateUser } = require('./email.service');
 
 const EntityService = {
   /**

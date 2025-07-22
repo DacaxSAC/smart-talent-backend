@@ -13,7 +13,7 @@ const { roleValidation } = require('../middleware/validation.middleware');
 
 /**
  * @swagger
- * /api/roles:
+ * /roles:
  *   post:
  *     summary: Crear un nuevo rol (solo Admin)
  *     tags: [Roles]
@@ -84,7 +84,7 @@ router.post('/', [
 
 /**
  * @swagger
- * /api/roles:
+ * /roles:
  *   get:
  *     summary: Obtener todos los roles (Admin, Manager)
  *     tags: [Roles]
@@ -125,7 +125,7 @@ router.get('/', [
 
 /**
  * @swagger
- * /api/roles/{id}:
+ * /roles/{id}:
  *   get:
  *     summary: Obtener un rol por ID (Admin, Manager)
  *     tags: [Roles]
@@ -173,7 +173,7 @@ router.get('/:id', [
 
 /**
  * @swagger
- * /api/roles/{id}:
+ * /roles/{id}:
  *   put:
  *     summary: Actualizar un rol (solo Admin)
  *     tags: [Roles]
@@ -248,7 +248,7 @@ router.put('/:id', [
 
 /**
  * @swagger
- * /api/roles/{id}:
+ * /roles/{id}:
  *   delete:
  *     summary: Eliminar un rol (solo Admin)
  *     tags: [Roles]
@@ -289,4 +289,4 @@ router.delete('/:id', [
   roleMiddleware(['ADMIN'])
 ], RoleController.delete);
 
-module.exports = { roleRoutes: router };
+module.exports = router;

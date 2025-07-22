@@ -1,10 +1,10 @@
 const express = require('express');
-const { DocumentTypeController } = require('../controllers/documentType.controller');
 const router = express.Router();
+const { DocumentTypeController } = require('../controllers/documentType.controller');
 
 /**
  * @swagger
- * /api/document-types/with-resource-types:
+ * /document-types/with-resource-types:
  *   get:
  *     tags:
  *       - Tipos de Documentos
@@ -72,4 +72,4 @@ const router = express.Router();
  */
 router.get('/with-resource-types', DocumentTypeController.getAllWithResources);
 
-module.exports = { documentTypeRoutes: router };
+module.exports = router;

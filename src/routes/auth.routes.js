@@ -13,7 +13,7 @@ const { authValidation } = require('../middleware/validation.middleware');
 
 /**
  * @swagger
- * /api/auth/login:
+ * /auth/login:
  *   post:
  *     summary: Iniciar sesión de usuario
  *     tags: [Autenticación]
@@ -75,7 +75,7 @@ router.post('/login', [
 
 /**
  * @swagger
- * /api/auth/profile:
+ * /auth/profile:
  *   get:
  *     summary: Obtener perfil del usuario actual
  *     tags: [Autenticación]
@@ -114,7 +114,7 @@ router.get('/profile', [
 
 /**
  * @swagger
- * /api/auth/request-password-reset:
+ * /auth/request-password-reset:
  *   post:
  *     summary: Solicitar restablecimiento de contraseña
  *     tags: [Autenticación]
@@ -157,7 +157,7 @@ router.post('/request-password-reset', [
 
 /**
  * @swagger
- * /api/auth/validate-reset-token/{token}:
+ * /auth/validate-reset-token/{token}:
  *   get:
  *     summary: Validar token de restablecimiento de contraseña
  *     tags: [Autenticación]
@@ -191,7 +191,7 @@ router.get('/validate-reset-token/:token', AuthController.validateResetToken);
 
 /**
  * @swagger
- * /api/auth/reset-password:
+ * /auth/reset-password:
  *   post:
  *     summary: Restablecer contraseña
  *     tags: [Autenticación]
