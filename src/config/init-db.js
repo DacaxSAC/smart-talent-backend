@@ -98,6 +98,18 @@ const initDatabase = async () => {
     });
     console.log('Entidad JURIDICA por defecto creada');
 
+    // Mi usuario de prueba (DUCZ)
+    const entidadDucz = await EntityService.createEntityWithUser({
+      type: 'JURIDICA',
+      documentNumber: '10123456789',
+      businessName: 'Dacax SAC',
+      address: 'Av. Principal 456',
+      phone: '877774529',
+      email: 'contact@dacax.dev',
+      active: true
+    });
+    console.log('Entidad DUCZ por defecto creada');
+
     // Crear tipos de documentos predeterminados
     const documentTypes = [
       {
