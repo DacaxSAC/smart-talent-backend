@@ -3,19 +3,9 @@ const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
-const swaggerUI = require('swagger-ui-express');
-const swaggerSpec = require('./config/swagger');
+const routerApi = require('./routes');
 const { sequelize, testConnection } = require('./config/database');
-
-// Importar rutas
-const { userRoutes } = require('./routes/user.routes');
-const authRoutes = require('./routes/auth.routes');
-const { roleRoutes } = require('./routes/role.routes');
-const { entityRoutes } = require('./routes/entity.routes');
-const { requestRoutes } = require('./routes/request.routes');
-const { uploadRoutes } = require('./routes/upload.routes');
-const { documentTypeRoutes } = require('./routes/documentType.routes');
-const { documentRoutes } = require('./routes/document.routes');
+const { SERVER_PORT } = require('./config/env-variable');
 
 // Inicializar la aplicación
 const app = express();
@@ -42,23 +32,7 @@ app.use(cors({
 app.use(helmet());
 app.use(morgan('dev'));
 
-// Configuración de rutas
-app.use('/api/users', userRoutes);
-app.use('/api/auth', authRoutes);
-app.use('/api/roles', roleRoutes);
-app.use('/api/entities', entityRoutes);
-app.use('/api/requests', requestRoutes);
-app.use('/api/upload', uploadRoutes);
-app.use('/api/document-types', documentTypeRoutes);
-app.use('/api/documents', documentRoutes);
-
-// Documentación Swagger
-app.use('/api-docs', swaggerUI.serve, swaggerUI.setup(swaggerSpec));
-
-// Ruta de prueba
-app.get('/', (req, res) => {
-  res.redirect('/api-docs');
-});
+routerApi(app);
 
 // Conexión a la base de datos
 const connectDB = async () => {
@@ -77,8 +51,7 @@ const connectDB = async () => {
 };
 
 // Iniciar el servidor
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, async () => {
+app.listen(SERVER_PORT, async () => {
   await connectDB();
-  console.log(`Accede a la API: http://localhost:${PORT}`);
+  console.log(`Accede a la API: http://localhost:${SERVER_PORT}`);
 });

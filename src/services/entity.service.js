@@ -1,8 +1,8 @@
-const { Entity, User, Role } = require('../models');
 const { Op } = require('sequelize');
+const { Entity, User, Role } = require('../models');
+const { sendEmailCreateUser } = require('./email.service');
 const { sequelize } = require('../config/database');
 const PasswordGenerator = require('../utils/passwordGenerator');
-const { sendEmailCreateUser } = require('./email.service');
 
 const EntityService = {
   /**
@@ -95,11 +95,16 @@ const EntityService = {
         transaction
       });
 
-      //Enviar correo con las credenciales
-      await sendEmailCreateUser(user.email, userPassword);
-
       // Confirmar transacción
       await transaction.commit();
+
+      // Enviar correo con las credenciales (fuera de la transacción)
+      try {
+        await sendEmailCreateUser(user.email, userPassword);
+      } catch (emailError) {
+        console.error('Error al enviar correo:', emailError.message);
+        // No fallar la operación si el correo falla
+      }
 
       return {
         message: 'Entidad y usuario creados exitosamente',

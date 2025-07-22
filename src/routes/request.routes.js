@@ -5,7 +5,7 @@ const { authMiddleware, roleMiddleware } = require('../middleware/auth.middlewar
 
 /**
  * @swagger
- * /api/requests:
+ * /requests:
  *   post:
  *     summary: Crear una nueva solicitud con personas, documentos y recursos
  *     tags: [Requests]
@@ -111,7 +111,7 @@ router.post('/', [
 
 /**
  * @swagger
- * /api/requests/entity/{entityId}/people:
+ * /requests/entity/{entityId}/people:
  *   get:
  *     summary: Obtener todas las personas de una entidad específica
  *     tags: [Requests]
@@ -140,7 +140,7 @@ router.get('/entity/:entityId/people', [
 
 /**
  * @swagger
- * /api/requests/people:
+ * /requests/people:
  *   get:
  *     summary: Obtener todas las personas con su entidad asociada
  *     tags: [Requests]
@@ -161,4 +161,4 @@ router.get('/people', [
   roleMiddleware(['ADMIN', 'MANAGER'])
 ], RequestController.getAllPeople);
 
-module.exports = { requestRoutes: router };
+module.exports = router;

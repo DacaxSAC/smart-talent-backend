@@ -13,7 +13,7 @@ const { userValidation } = require('../middleware/validation.middleware');
 
 /**
  * @swagger
- * /api/users:
+ * /users:
  *   post:
  *     summary: Crear un nuevo usuario (solo Admin)
  *     tags: [Usuarios]
@@ -87,7 +87,7 @@ router.post('/', [
 
 /**
  * @swagger
- * /api/users:
+ * /users:
  *   get:
  *     summary: Obtener todos los usuarios (Admin, Manager)
  *     tags: [Usuarios]
@@ -133,7 +133,7 @@ router.get('/', [
 
 /**
  * @swagger
- * /api/users/{id}:
+ * /users/{id}:
  *   get:
  *     summary: Obtener un usuario por ID (Admin, Manager)
  *     tags: [Usuarios]
@@ -186,7 +186,7 @@ router.get('/:id', [
 
 /**
  * @swagger
- * /api/users/{id}:
+ * /users/{id}:
  *   put:
  *     summary: Actualizar un usuario (solo Admin)
  *     tags: [Usuarios]
@@ -255,7 +255,7 @@ router.put('/:id', [
 
 /**
  * @swagger
- * /api/users/{id}:
+ * /users/{id}:
  *   delete:
  *     summary: Eliminar un usuario (solo Admin)
  *     tags: [Usuarios]
@@ -294,4 +294,4 @@ router.delete('/:id', [
   roleMiddleware(['ADMIN'])
 ], UserController.delete);
 
-module.exports = { userRoutes: router };
+module.exports = router;

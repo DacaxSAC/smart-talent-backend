@@ -84,7 +84,7 @@ const initDatabase = async () => {
       email: 'natural@prueba.com',
       active: true
     });
-    console.log('Entidad NATURAL por defecto creada');
+    console.log('Entidad NATURAL por defecto creada', entidadNatural);
 
     // Entidad Jurídica por defecto
     const entidadJuridica = await EntityService.createEntityWithUser({
@@ -96,7 +96,7 @@ const initDatabase = async () => {
       email: 'juridica@prueba.com',
       active: true
     });
-    console.log('Entidad JURIDICA por defecto creada');
+    console.log('Entidad JURIDICA por defecto creada', entidadJuridica);
 
     // Mi usuario de prueba (DUCZ)
     const entidadDucz = await EntityService.createEntityWithUser({

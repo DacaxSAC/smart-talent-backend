@@ -1,7 +1,5 @@
-const { Entity, User, Role, Request } = require('../models');
 const { validationResult } = require('express-validator');
 const EntityService = require('../services/entity.service');
-const { Op } = require('sequelize');
 
 const EntityController = {
   create: async (req, res) => {

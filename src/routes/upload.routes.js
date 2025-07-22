@@ -5,7 +5,7 @@ const { authMiddleware } = require('../middleware/auth.middleware');
 
 /**
  * @swagger
- * /api/upload/write-signed-url:
+ * /upload/write-signed-url:
  *   post:
  *     summary: Generar URL firmada para subir archivos a Firebase Storage
  *     tags: [Upload]
@@ -61,7 +61,7 @@ router.post('/write-signed-url', authMiddleware, UploadController.getWriteSigned
 
 /**
  * @swagger
- * /api/upload/read-signed-url:
+ * /upload/read-signed-url:
  *   post:
  *     summary: Generar URL firmada para leer (descargar) archivos de Firebase Storage
  *     tags: [Upload]
@@ -110,4 +110,4 @@ router.post('/write-signed-url', authMiddleware, UploadController.getWriteSigned
  */
 router.post('/read-signed-url', authMiddleware, UploadController.getReadSignedUrl);
 
-module.exports = { uploadRoutes: router };
+module.exports = router;

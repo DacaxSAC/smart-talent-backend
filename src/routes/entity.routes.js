@@ -6,7 +6,7 @@ const { entityValidation } = require('../middleware/validation.middleware');
 
 /**
  * @swagger
- * /api/entities:
+ * /entities:
  *   post:
  *     summary: Crear una nueva entidad con usuario asociado (Admin, Manager)
  *     description: Crea una entidad y automáticamente genera un usuario asociado con contraseña segura. Se envía un correo electrónico con las credenciales al usuario.
@@ -129,7 +129,7 @@ router.post('/', [
 
 /**
  * @swagger
- * /api/entities:
+ * /entities:
  *   get:
  *     summary: Obtener todas las entidades (Admin, Manager)
  *     tags: [Entities]
@@ -186,7 +186,7 @@ router.get('/', [
 
 /**
  * @swagger
- * /api/entities/{id}:
+ * /entities/{id}:
  *   get:
  *     summary: Obtener una entidad por ID (Admin, Manager)
  *     tags: [Entities]
@@ -250,7 +250,7 @@ router.get('/:id', [
 
 /**
  * @swagger
- * /api/entities/{id}:
+ * /entities/{id}:
  *   put:
  *     summary: Actualizar una entidad (Admin, Manager)
  *     tags: [Entities]
@@ -316,7 +316,7 @@ router.put('/:id', [
 
 /**
  * @swagger
- * /api/entities/{id}:
+ * /entities/{id}:
  *   delete:
  *     summary: Eliminar una entidad (Admin, Manager)
  *     tags: [Entities]
@@ -348,4 +348,4 @@ router.delete('/:id', [
   EntityController.delete
 );
 
-module.exports = { entityRoutes: router};
+module.exports = router;

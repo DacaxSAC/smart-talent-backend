@@ -5,7 +5,7 @@ const { authMiddleware } = require('../middleware/auth.middleware');
 
 /**
  * @swagger
- * /api/document/bulk-update:
+ * /document/bulk-update:
  *   put:
  *     summary: Actualizar el resultado y el nombre de archivo de varios documentos
  *     tags: [Document]
@@ -70,4 +70,4 @@ const { authMiddleware } = require('../middleware/auth.middleware');
  */
 router.put('/bulk-update', authMiddleware, DocumentController.updateMultiple);
 
-module.exports = { documentRoutes: router };
+module.exports =  router;

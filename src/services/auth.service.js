@@ -1,11 +1,23 @@
-const { User, Role } = require('../models');
-const { Op } = require('sequelize');
 const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
 const bcrypt = require('bcryptjs');
+const { Op } = require('sequelize');
 const { sendEmailResetPassword } = require('./email.service');
+const { JWT_SECRET, JWT_EXPIRE, FRONTEND_URL } = require('../config/env-variable');
+const { User, Role } = require('../models');
 
 const AuthService = {
+  generateToken(userId, roles) {
+    return jwt.sign(
+      { 
+        userId: userId, 
+        roles: roles 
+      },
+      JWT_SECRET,
+      { expiresIn: JWT_EXPIRE }
+    );
+  },
+
   async registerUser(userData) {
     const { username, email, password } = userData;
 
@@ -138,17 +150,6 @@ const AuthService = {
     };
   },
 
-  generateToken(userId, roles) {
-    return jwt.sign(
-      { 
-        userId: userId, 
-        roles: roles 
-      },
-      process.env.JWT_SECRET,
-      { expiresIn: '24h' }
-    );
-  },
-
   async requestPasswordReset(email) {
     // Buscar usuario por email
     const user = await User.findOne({ where: { email } });
@@ -167,7 +168,7 @@ const AuthService = {
     });
 
     // Enviar email con el token
-    const resetUrl = `${process.env.FRONTEND_URL}/reset-password?token=${resetToken}`;
+    const resetUrl = `${FRONTEND_URL}/reset-password?token=${resetToken}`;
     await sendEmailResetPassword(user.email, user.username, resetUrl);
 
     return {
