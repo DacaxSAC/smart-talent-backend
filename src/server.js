@@ -9,7 +9,7 @@ const { sequelize, testConnection } = require('./config/database');
 
 // Importar rutas
 const { userRoutes } = require('./routes/user.routes');
-const { authRoutes } = require('./routes/auth.routes');
+const authRoutes = require('./routes/auth.routes');
 const { roleRoutes } = require('./routes/role.routes');
 const { entityRoutes } = require('./routes/entity.routes');
 const { requestRoutes } = require('./routes/request.routes');

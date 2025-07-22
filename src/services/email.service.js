@@ -61,4 +61,36 @@ async function sendEmailHTML(to, subject, html) {
 }
 
 
-module.exports = sendEmailCreateUser;
+async function sendEmailResetPassword(to, username, resetUrl, templateType = 'reset-password') {
+    const subject = 'Restablecimiento de Contraseña - Smart Talent';
+    
+    try {
+        const templateExists = await templateEngine.templateExists(templateType);
+        if (!templateExists) {
+            console.warn(`Plantilla ${templateType} no encontrada, usando 'reset-password' por defecto`);
+            templateType = 'reset-password';
+        }
+        
+        const variables = {
+            username: username,
+            email: to,
+            reset_url: resetUrl,
+            frontend_url: process.env.FRONTEND_URL || 'http://localhost:3000'
+        };
+        
+        // Renderizar plantilla
+        const htmlContent = await templateEngine.render(templateType, variables);
+        
+        return await sendEmailHTML(to, subject, htmlContent);
+    } catch (error) {
+        console.error('Error al renderizar plantilla de email de reset:', error);
+        throw new Error('Error al generar el email de restablecimiento');
+    }
+}
+
+module.exports = {
+    sendEmailCreateUser,
+    sendEmailResetPassword,
+    sendEmail,
+    sendEmailHTML
+};

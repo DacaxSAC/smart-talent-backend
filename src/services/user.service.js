@@ -1,7 +1,7 @@
 const { User, Role } = require('../models');
 const { Op } = require('sequelize');
 const PasswordGenerator = require('../utils/passwordGenerator');
-const sendEmailCreateUser = require('./email.service');
+const { sendEmailCreateUser } = require('./email.service');
 
 
 const UserService = {

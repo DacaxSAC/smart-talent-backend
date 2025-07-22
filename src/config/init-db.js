@@ -41,8 +41,6 @@ const initDatabase = async () => {
         username: 'admin',
         email: 'admin@smarttalent.com',
         password: 'Admin@123',
-        firstName: 'Admin',
-        lastName: 'System',
         active: true,
         roleName: 'ADMIN'
       },
@@ -50,8 +48,6 @@ const initDatabase = async () => {
         username: 'manager',
         email: 'manager@smarttalent.com',
         password: 'Manager@123',
-        firstName: 'Manager',
-        lastName: 'System',
         active: true,
         roleName: 'MANAGER'
       },
@@ -59,8 +55,6 @@ const initDatabase = async () => {
         username: 'guest',
         email: 'guest@smarttalent.com',
         password: 'Guest@123',
-        firstName: 'Guest',
-        lastName: 'Visitor',
         active: true,
         roleName: 'GUEST'
       }

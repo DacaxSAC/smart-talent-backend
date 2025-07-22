@@ -48,6 +48,53 @@ const AuthController = {
       const statusCode = error.message === 'Usuario no encontrado' ? 404 : 500;
       res.status(statusCode).json({ message: error.message });
     }
+  },
+
+  // Solicitar restablecimiento de contraseña
+  requestPasswordReset: async (req, res) => {
+    try {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res.status(400).json({ errors: errors.array() });
+      }
+
+      const result = await AuthService.requestPasswordReset(req.body.email);
+      res.status(200).json(result);
+    } catch (error) {
+      console.error('Error al solicitar restablecimiento:', error);
+      const statusCode = error.message === 'No existe un usuario con ese correo electrónico' ? 404 : 500;
+      res.status(statusCode).json({ message: error.message });
+    }
+  },
+
+  // Validar token de restablecimiento
+  validateResetToken: async (req, res) => {
+    try {
+      const { token } = req.params;
+      const result = await AuthService.validateResetToken(token);
+      res.status(200).json(result);
+    } catch (error) {
+      console.error('Error al validar token:', error);
+      res.status(500).json({ message: error.message });
+    }
+  },
+
+  // Restablecer contraseña
+  resetPassword: async (req, res) => {
+    try {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res.status(400).json({ errors: errors.array() });
+      }
+
+      const { token, newPassword } = req.body;
+      const result = await AuthService.resetPassword(token, newPassword);
+      res.status(200).json(result);
+    } catch (error) {
+      console.error('Error al restablecer contraseña:', error);
+      const statusCode = error.message === 'Token inválido o expirado' ? 400 : 500;
+      res.status(statusCode).json({ message: error.message });
+    }
   }
 };
 

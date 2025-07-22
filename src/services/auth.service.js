@@ -1,6 +1,9 @@
 const { User, Role } = require('../models');
 const { Op } = require('sequelize');
 const jwt = require('jsonwebtoken');
+const crypto = require('crypto');
+const bcrypt = require('bcryptjs');
+const { sendEmailResetPassword } = require('./email.service');
 
 const AuthService = {
   async registerUser(userData) {
@@ -144,6 +147,78 @@ const AuthService = {
       process.env.JWT_SECRET,
       { expiresIn: '24h' }
     );
+  },
+
+  async requestPasswordReset(email) {
+    // Buscar usuario por email
+    const user = await User.findOne({ where: { email } });
+    if (!user) {
+      throw new Error('No existe un usuario con ese correo electrónico');
+    }
+
+    // Generar token de reset
+    const resetToken = crypto.randomBytes(32).toString('hex');
+    const resetTokenExpiry = new Date(Date.now() + 3600000); // 1 hora
+
+    // Guardar token en la base de datos
+    await user.update({
+      resetPasswordToken: resetToken,
+      resetPasswordExpires: resetTokenExpiry
+    });
+
+    // Enviar email con el token
+    const resetUrl = `${process.env.FRONTEND_URL}/reset-password?token=${resetToken}`;
+    await sendEmailResetPassword(user.email, user.username, resetUrl);
+
+    return {
+      message: 'Se ha enviado un correo con las instrucciones para restablecer tu contraseña'
+    };
+  },
+
+  async validateResetToken(token) {
+    const user = await User.findOne({
+      where: {
+        resetPasswordToken: token,
+        resetPasswordExpires: {
+          [Op.gt]: new Date()
+        }
+      }
+    });
+
+    return {
+      valid: !!user,
+      message: user ? 'Token válido' : 'Token inválido o expirado'
+    };
+  },
+
+  async resetPassword(token, newPassword) {
+    // Buscar usuario con token válido
+    const user = await User.findOne({
+      where: {
+        resetPasswordToken: token,
+        resetPasswordExpires: {
+          [Op.gt]: new Date()
+        }
+      }
+    });
+
+    if (!user) {
+      throw new Error('Token inválido o expirado');
+    }
+
+    // Hashear nueva contraseña
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+    // Actualizar contraseña y limpiar tokens
+    await user.update({
+      password: hashedPassword,
+      resetPasswordToken: null,
+      resetPasswordExpires: null
+    });
+
+    return {
+      message: 'Contraseña restablecida exitosamente'
+    };
   }
 };
 

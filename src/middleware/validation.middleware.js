@@ -26,6 +26,16 @@ const authValidation = {
   login: [
     check('email', 'Por favor incluya un email válido').isEmail(),
     check('password', 'La contraseña es obligatoria').exists()
+  ],
+  
+  requestPasswordReset: [
+    check('email', 'Por favor incluya un email válido').isEmail()
+  ],
+  
+  resetPassword: [
+    check('token', 'El token es obligatorio').not().isEmpty(),
+    check('newPassword', 'La nueva contraseña es obligatoria').not().isEmpty(),
+    check('newPassword', 'La nueva contraseña debe tener al menos 6 caracteres').isLength({ min: 6 })
   ]
 };
 
