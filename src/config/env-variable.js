@@ -7,8 +7,6 @@ const FRONTEND_URL = process.env.FRONTEND_URL;
 const SERVER_PORT = process.env.SERVER_PORT || 3000;
 
 //database variables
-const POSTGRES_HOST = process.env.POSTGRES_HOST || 'localhost';
-const POSTGRES_PORT = process.env.POSTGRES_PORT || 5432;
 const DB_CONNECTION_STRING = process.env.DB_CONNECTION_STRING;
 
 //nodemailer variables
@@ -24,8 +22,6 @@ module.exports = {
   JWT_EXPIRE,
   FRONTEND_URL,
   SERVER_PORT,
-  POSTGRES_HOST,
-  POSTGRES_PORT,
   DB_CONNECTION_STRING,
   USER_EMAIL,
   PASS_EMAIL,

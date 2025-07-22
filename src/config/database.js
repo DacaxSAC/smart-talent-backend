@@ -14,23 +14,7 @@ const sequelize = new Sequelize(DB_CONNECTION_STRING, {
   logging: false,
 });
 
-//const sequelize = new Sequelize(DB_CONNECTION_STRING,
-//  {
-//    host: POSTGRES_HOST,
-//    dialect: 'postgres',
-//    port: POSTGRES_PORT,
-//    dialectOptions: {
-//      ssl: {
-//        require: false, // Esto es necesario para forzar SSL
-//        rejectUnauthorized: false, // Esto puede ser necesario si tu CA no es de confianza
-//      },
-//    },
-//    logging: false,
-//  }
-//);
-
 // Función para probar la conexión
-
 const testConnection = async () => {
   try {
     await sequelize.authenticate();
