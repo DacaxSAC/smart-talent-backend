@@ -1,7 +1,15 @@
 const { Entity, User, Role } = require('../models');
 const { Op } = require('sequelize');
+const { sequelize } = require('../config/database');
+const PasswordGenerator = require('../utils/passwordGenerator');
+const sendEmailCreateUser = require('./email.service');
 
 const EntityService = {
+  /**
+   * Crea una entidad con su usuario asociado usando transacciones
+   * @param {Object} data - Datos de la entidad y usuario
+   * @returns {Object} Resultado con entidad y usuario creados
+   */
   async createEntityWithUser(data) {
     const {
       type,
@@ -15,60 +23,100 @@ const EntityService = {
       email
     } = data;
 
-    // Verificar si la entidad ya existe por documento
-    const entityExists = await Entity.findOne({ where: { documentNumber } });
-    if (entityExists) {
-      throw new Error('Ya existe una entidad con este número de documento');
-    }
+    // Iniciar transacción
+    const transaction = await sequelize.transaction();
 
-    // Verificar si ya existe un usuario con ese email
-    const userExists = await User.findOne({
-      where: { email, active: true }
-    });
-    if (userExists) {
-      throw new Error('Ya existe un usuario con este email');
-    }
-
-    // Crear nueva entidad
-    const entity = await Entity.create({
-      type,
-      documentNumber,
-      firstName,
-      paternalSurname,
-      maternalSurname,
-      businessName,
-      address,
-      phone,
-      active: true
-    });
-
-    // Obtener el rol USER
-    const userRole = await Role.findOne({ where: { name: 'USER' } });
-    if (!userRole) {
-      throw new Error('Error al asignar rol: Rol USER no encontrado');
-    }
-
-    // Crear usuario asociado
-    const user = await User.create({
-      username: type === 'NATURAL'
-        ? `${firstName} ${paternalSurname} ${maternalSurname}`
-        : businessName,
-      email,
-      password: documentNumber, // La contraseña será el DNI o RUC
-      active: true,
-      entityId: entity.id
-    });
-
-    // Asignar rol al usuario
-    await user.setRoles([userRole]);
-
-    return {
-      entity,
-      user: {
-        email: user.email,
-        username: user.username
+    try {
+      // Verificar si la entidad ya existe por documento
+      const entityExists = await Entity.findOne({ 
+        where: { documentNumber },
+        transaction
+      });
+      if (entityExists) {
+        throw new Error('Ya existe una entidad con este número de documento');
       }
-    };
+
+      // Verificar si ya existe un usuario con ese email
+      const userExists = await User.findOne({
+        where: { email, active: true },
+        transaction
+      });
+      if (userExists) {
+        throw new Error('Ya existe un usuario con este email');
+      }
+
+      // Obtener el rol USER
+      const userRole = await Role.findOne({ 
+        where: { name: 'USER' },
+        transaction
+      });
+      if (!userRole) {
+        throw new Error('Error al asignar rol: Rol USER no encontrado');
+      }
+
+      // Crear nueva entidad
+      const entity = await Entity.create({
+        type,
+        documentNumber,
+        firstName,
+        paternalSurname,
+        maternalSurname,
+        businessName,
+        address,
+        phone,
+        active: true
+      }, { transaction });
+
+      // Generar contraseña segura
+      const userPassword = PasswordGenerator.generateSecure(12);
+
+      // Crear usuario asociado
+      const user = await User.create({
+        username: type === 'NATURAL'
+          ? `${firstName} ${paternalSurname} ${maternalSurname}`
+          : businessName,
+        email,
+        password: userPassword,
+        active: true,
+        entityId: entity.id
+      }, { transaction });
+
+      // Asignar rol al usuario
+      await user.setRoles([userRole], { transaction });
+
+      // Obtener el usuario con roles para la respuesta
+      const userWithRoles = await User.findByPk(user.id, {
+        attributes: { exclude: ['password'] },
+        include: [{
+          model: Role,
+          attributes: ['id', 'name'],
+          through: { attributes: [] }
+        }],
+        transaction
+      });
+
+      // Confirmar transacción
+      await transaction.commit();
+
+      // Enviar correo con las credenciales (fuera de la transacción)
+      try {
+        await sendEmailCreateUser(user.email, userPassword);
+      } catch (emailError) {
+        console.error('Error al enviar correo:', emailError.message);
+        // No fallar la operación si el correo falla
+      }
+
+      return {
+        message: 'Entidad y usuario creados exitosamente',
+        entity,
+        user: userWithRoles
+      };
+
+    } catch (error) {
+      // Revertir transacción en caso de error
+      await transaction.rollback();
+      throw error;
+    }
   },
 
   async getAllEntities() {

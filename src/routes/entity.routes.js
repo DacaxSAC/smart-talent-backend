@@ -8,7 +8,8 @@ const { entityValidation } = require('../middleware/validation.middleware');
  * @swagger
  * /api/entities:
  *   post:
- *     summary: Crear una nueva entidad (Admin, Manager)
+ *     summary: Crear una nueva entidad con usuario asociado (Admin, Manager)
+ *     description: Crea una entidad y automáticamente genera un usuario asociado con contraseña segura. Se envía un correo electrónico con las credenciales al usuario.
  *     tags: [Entities]
  *     security:
  *       - bearerAuth: []
@@ -54,9 +55,63 @@ const { entityValidation } = require('../middleware/validation.middleware');
  *                 description: Correo electrónico de la entidad
  *     responses:
  *       201:
- *         description: Entidad creada exitosamente
+ *         description: Entidad y usuario creados exitosamente. Se envía correo con credenciales.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "Entidad y usuario creados exitosamente"
+ *                 entity:
+ *                   type: object
+ *                   properties:
+ *                     id:
+ *                       type: string
+ *                     type:
+ *                       type: string
+ *                       enum: [NATURAL, JURIDICA]
+ *                     documentNumber:
+ *                       type: string
+ *                     firstName:
+ *                       type: string
+ *                     paternalSurname:
+ *                       type: string
+ *                     maternalSurname:
+ *                       type: string
+ *                     businessName:
+ *                       type: string
+ *                     address:
+ *                       type: string
+ *                     phone:
+ *                       type: string
+ *                     active:
+ *                       type: boolean
+ *                 user:
+ *                   type: object
+ *                   properties:
+ *                     id:
+ *                       type: string
+ *                     username:
+ *                       type: string
+ *                     email:
+ *                       type: string
+ *                     active:
+ *                       type: boolean
+ *                     entityId:
+ *                       type: string
+ *                     roles:
+ *                       type: array
+ *                       items:
+ *                         type: object
+ *                         properties:
+ *                           id:
+ *                             type: string
+ *                           name:
+ *                             type: string
  *       400:
- *         description: Datos inválidos o entidad ya existe
+ *         description: Datos inválidos, entidad ya existe, o usuario con email ya existe
  *       401:
  *         description: No autenticado
  *       403:
