@@ -34,8 +34,6 @@ app.use(morgan('dev'));
 
 routerApi(app);
 
-app.get('/', (req, res) => {res.redirect('/api/v1/api-docs');});
-
 // Conexión a la base de datos
 const connectDB = async () => {
   try {

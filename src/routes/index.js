@@ -12,6 +12,11 @@ const usersRouter = require('./user.routes');
 
 function routerApi(app){
   const router = express.Router();
+
+  app.get('/', (req, res) => {
+    res.redirect('/api/v1/api-docs');
+  });
+
   app.use('/api/v1', router);
   router.use('/auth', authRouter);
   router.use('/roles', rolesRouter);
@@ -21,8 +26,9 @@ function routerApi(app){
   router.use('/document-types', documentTypesRouter);
   router.use('/requests', requestsRouter);
   router.use('/upload', uploadsRouter);
-  router.use('/api-docs',swaggerUI.serve);  
+  router.use('/api-docs', swaggerUI.serve);  
   router.get('/api-docs', swaggerUI.setup(swaggerSpec));
 }
+
 
 module.exports = routerApi;
