@@ -29,12 +29,15 @@ const AuthController = {
       }
 
       const result = await AuthService.loginUser(req.body);
+
+      if (result.success === false) {
+        return res.status(401).json({ message: result.message });
+      }
+      
       res.status(200).json(result);
     } catch (error) {
       console.error('Error al iniciar sesión:', error);
-      const statusCode = error.message === 'Credenciales inválidas' ? 401 : 
-                        error.message === 'Usuario inactivo' ? 401 : 500;
-      res.status(statusCode).json({ message: error.message });
+      res.status(500).json({ message: error.message });
     }
   },
 
