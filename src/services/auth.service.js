@@ -154,7 +154,9 @@ const AuthService = {
     // Buscar usuario por email
     const user = await User.findOne({ where: { email } });
     if (!user) {
-      throw new Error('No existe un usuario con ese correo electrónico');
+      return{
+        message: 'Se ha enviado un correo con las instrucciones para restablecer tu contraseña'
+      }
     }
 
     // Generar token de reset
@@ -169,6 +171,8 @@ const AuthService = {
 
     // Enviar email con el token
     const resetUrl = `${FRONTEND_URL}/reset-password?token=${resetToken}`;
+    console.log(resetUrl);
+    console.log(user.email, user.username)
     await sendEmailResetPassword(user.email, user.username, resetUrl);
 
     return {
@@ -204,7 +208,10 @@ const AuthService = {
     });
 
     if (!user) {
-      throw new Error('Token inválido o expirado');
+      return{
+        success: false,
+        message: 'Token inválido o expirado'
+      }
     }
 
     // Hashear nueva contraseña
@@ -217,7 +224,8 @@ const AuthService = {
       resetPasswordExpires: null
     });
 
-    return {
+    return { 
+      success: true,
       message: 'Contraseña restablecida exitosamente'
     };
   }

@@ -35,9 +35,13 @@ class TemplateEngine {
         
         // Reemplazar cada variable
         Object.keys(variables).forEach(key => {
-            const placeholder = `{{${key.toUpperCase()}}}`;
+            // Reemplazar tanto en mayúsculas como en minúsculas
+            const placeholderUpper = `{{${key.toUpperCase()}}}`;
+            const placeholderLower = `{{${key.toLowerCase()}}}`;
             const value = variables[key];
-            result = result.replace(new RegExp(placeholder, 'g'), value);
+            
+            result = result.replace(new RegExp(placeholderUpper, 'g'), value);
+            result = result.replace(new RegExp(placeholderLower, 'g'), value);
         });
         
         return result;
@@ -93,4 +97,4 @@ class TemplateEngine {
     }
 }
 
-module.exports = TemplateEngine; 
+module.exports = TemplateEngine;
