@@ -60,30 +60,6 @@ const RequestController = {
     }
   },
 
-  // Actualizar estado de solicitud (método genérico)
-  updateStatus: async (req, res) => {
-    try {
-      const { requestId } = req.params;
-      const { status } = req.body;
-      
-      if (!requestId || !status) {
-        return res.status(400).json({ 
-          message: 'ID de solicitud y estado son requeridos' 
-        });
-      }
-
-      const result = await RequestService.updateRequestStatus(requestId, status);
-      res.status(200).json(result);
-    } catch (error) {
-      console.error('Error al actualizar estado de solicitud:', error);
-      const statusCode = error.message === 'Solicitud no encontrada' ? 404 : 500;
-      res.status(statusCode).json({ 
-        message: error.message === 'Solicitud no encontrada' ? error.message : 'Error al actualizar el estado de la solicitud', 
-        error: error.message 
-     });
-   }
- },
-
  // Asignar recruiter y mover a IN_PROGRESS
  assignRecruiter: async (req, res) => {
    try {
@@ -138,8 +114,29 @@ const RequestController = {
         return res.status(404).json({ message: error.message });
       }
       res.status(500).json({ message: 'Error interno del servidor', error: error.message });
+     }
+   },
+
+  // Actualizar solo el status de una persona
+  updatePersonStatus: async (req, res) => {
+    try {
+      const { personId, status } = req.body;
+
+      if (!personId || !status) {
+        return res.status(400).json({
+          message: 'personId y status son requeridos'
+        });
+      }
+
+      const result = await RequestService.updatePersonStatus(personId, status);
+      res.status(200).json(result);
+    } catch (error) {
+      if (error.message === 'Persona no encontrada') {
+        return res.status(404).json({ message: error.message });
+      }
+      res.status(500).json({ message: 'Error interno del servidor', error: error.message });
     }
   }
 };
 
-module.exports = { RequestController };
+module.exports = RequestController;

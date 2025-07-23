@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { RequestController } = require('../controllers/request.controller');
+const RequestController = require('../controllers/request.controller');
 const { authMiddleware, roleMiddleware } = require('../middleware/auth.middleware');
 
 /**
@@ -296,19 +296,12 @@ router.patch('/give-observations', [
 
 /**
  * @swagger
- * /requests/{requestId}/status:
+ * /requests/updatePersonStatus:
  *   patch:
- *     summary: Actualizar el estado de una solicitud
+ *     summary: Actualizar solo el estado de una persona específica
  *     tags: [Requests]
  *     security:
  *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: requestId
- *         required: true
- *         schema:
- *           type: integer
- *         description: ID de la solicitud
  *     requestBody:
  *       required: true
  *       content:
@@ -316,15 +309,19 @@ router.patch('/give-observations', [
  *           schema:
  *             type: object
  *             required:
+ *               - personId
  *               - status
  *             properties:
+ *               personId:
+ *                 type: integer
+ *                 description: ID de la persona
  *               status:
  *                 type: string
- *                 enum: [PENDING, IN_PROGRESS, COMPLETED, REJECTED, OBSERVED]
- *                 description: Nuevo estado de la solicitud
+ *                 enum: [PENDING, IN_PROGRESS, OBSERVED, APPROVED, REJECTED]
+ *                 description: Nuevo estado de la persona
  *     responses:
  *       200:
- *         description: Estado de solicitud actualizado exitosamente
+ *         description: Estado de persona actualizado exitosamente
  *         content:
  *           application/json:
  *             schema:
@@ -332,23 +329,29 @@ router.patch('/give-observations', [
  *               properties:
  *                 message:
  *                   type: string
- *                   example: "Estado de solicitud actualizado a IN_PROGRESS"
- *                 requestId:
+ *                 personId:
  *                   type: integer
  *                 newStatus:
  *                   type: string
+ *                 personUpdated:
+ *                   type: object
+ *                   properties:
+ *                     id:
+ *                       type: integer
+ *                     fullname:
+ *                       type: string
+ *                     status:
+ *                       type: string
  *       400:
- *         description: ID de solicitud y estado son requeridos
- *       401:
- *         description: No autenticado
+ *         description: Datos inválidos
  *       404:
- *         description: Solicitud no encontrada
+ *         description: Persona no encontrada
  *       500:
  *         description: Error del servidor
  */
-router.patch('/:requestId/status', [
+router.patch('/updatePersonStatus', [
   authMiddleware,
-  roleMiddleware(['ADMIN', 'MANAGER'])
-], RequestController.updateStatus);
+  roleMiddleware(['ADMIN', 'MANAGER', 'RECRUITER'])
+], RequestController.updatePersonStatus);
 
 module.exports = router;
