@@ -39,27 +39,27 @@ const RequestService = {
             { transaction: t }
           );
 
-        // Crear documentos para esta persona
-        const createdDocuments = await Promise.all(
-          (personData.documents || []).map(async (docData) => {
-            const document = await Document.create({
-              documentTypeId: docData.documentTypeId,
-              name: docData.name,
-              status: 'Pendiente',
-              personId: person.id
-            }, { transaction: t });
+          // Crear documentos para esta persona
+          const createdDocuments = await Promise.all(
+            (personData.documents || []).map(async (docData) => {
+              const document = await Document.create({
+                documentTypeId: docData.documentTypeId,
+                name: docData.name,
+                status: 'Pendiente',
+                personId: person.id
+              }, { transaction: t });
 
-            // Crear recursos para este documento
-            const createdResources = await Promise.all(
-              (docData.resources || []).map(async (resourceData) => {
-                return await Resource.create({
-                  resourceTypeId: resourceData.resourceTypeId,
-                  documentId: document.id,
-                  name: resourceData.name,
-                  value: resourceData.value
-                }, { transaction: t });
-              })
-            );
+              // Crear recursos para este documento
+              const createdResources = await Promise.all(
+                (docData.resources || []).map(async (resourceData) => {
+                  return await Resource.create({
+                    resourceTypeId: resourceData.resourceTypeId,
+                    documentId: document.id,
+                    name: resourceData.name,
+                    value: resourceData.value
+                  }, { transaction: t });
+                })
+              );
 
               return {
                 ...document.toJSON(),
@@ -197,6 +197,7 @@ const RequestService = {
         "dni",
         "fullname",
         "phone",
+        "status",
         [
           sequelize.literal(`
             CASE 
@@ -205,29 +206,7 @@ const RequestService = {
             END
           `),
           "owner",
-        ],
-        [
-          sequelize.literal(`
-            CASE
-              WHEN EXISTS (
-                SELECT 1 FROM "Documents" d 
-                WHERE d."personId" = "Person"."id" 
-                AND d."status" = 'Realizado'
-              ) AND EXISTS (
-                SELECT 1 FROM "Documents" d 
-                WHERE d."personId" = "Person"."id" 
-                AND d."status" != 'Realizado'
-              ) THEN 'IN_PROGRESS'
-              WHEN NOT EXISTS (
-                SELECT 1 FROM "Documents" d 
-                WHERE d."personId" = "Person"."id" 
-                AND d."status" != 'Realizado'
-              ) THEN 'COMPLETED'
-              ELSE 'PENDING'
-            END
-          `),
-          "status",
-        ],
+        ]
       ],
     });
 
@@ -251,9 +230,9 @@ const RequestService = {
       // Actualizar el estado de la solicitud
       await Request.update(
         { status: newStatus },
-        { 
+        {
           where: { id: requestId },
-          transaction: t 
+          transaction: t
         }
       );
 
@@ -274,19 +253,26 @@ const RequestService = {
     return await this.updateRequestStatus(requestId, 'IN_PROGRESS');
   },
 
-  async assignRecruiterAndMoveToProgress(requestId, recruiterId) {
+  async assignRecruiter(recruiterId, personId) {
     const t = await sequelize.transaction();
 
     try {
-      // Verificar que la solicitud existe
-      const request = await Request.findByPk(requestId, { transaction: t });
-      if (!request) {
+      // Verificar que la persona existe y obtener su solicitud
+      const { User, Role, Person } = require('../models');
+      const person = await Person.findByPk(personId, {
+        include: [{
+          model: Request,
+          as: 'request'
+        }],
+        transaction: t
+      });
+
+      if (!person) {
         await t.rollback();
-        throw new Error('Solicitud no encontrada');
+        throw new Error('Persona no encontrada');
       }
 
       // Verificar que el usuario existe y es un recruiter
-      const { User, Role } = require('../models');
       const recruiter = await User.findByPk(recruiterId, {
         include: [{
           model: Role,
@@ -302,22 +288,23 @@ const RequestService = {
       }
 
       // Actualizar el estado de la solicitud a IN_PROGRESS
-      await Request.update(
+      await Person.update(
         { status: 'IN_PROGRESS' },
         { 
-          where: { id: requestId },
+          where: { id: person.id },
           transaction: t 
         }
       );
 
-      // Asignar el recruiter a la solicitud (relación many-to-many)
-      await request.addUser(recruiter, { transaction: t });
+      // Asignar el recruiter a la persona específica (relación User-Person)
+      await person.addUser(recruiter, { transaction: t });
 
       await t.commit();
 
       return {
-        message: 'Solicitud asignada al recruiter y movida a IN_PROGRESS',
-        requestId,
+        message: 'Persona asignada al reclutador',
+        requestId: person.request.id,
+        personId,
         recruiterId,
         recruiterName: recruiter.name,
         newStatus: 'IN_PROGRESS'

@@ -87,24 +87,26 @@ const RequestController = {
  // Asignar recruiter y mover a IN_PROGRESS
  assignRecruiter: async (req, res) => {
    try {
-     const { requestId } = req.params;
-     const { recruiterId } = req.body;
+     const { recruiterId, personId } = req.body;
      
-     if (!requestId || !recruiterId) {
+     if (!recruiterId || !personId) {
        return res.status(400).json({ 
-         message: 'ID de solicitud y ID de recruiter son requeridos' 
+         message: 'ID de recruiter y ID de persona son requeridos' 
        });
      }
 
-     const result = await RequestService.assignRecruiterAndMoveToProgress(requestId, recruiterId);
+     const result = await RequestService.assignRecruiter(recruiterId, personId);
      res.status(200).json(result);
    } catch (error) {
      console.error('Error al asignar recruiter y actualizar estado:', error);
      let statusCode = 500;
      let message = 'Error al asignar recruiter y actualizar el estado de la solicitud';
      
-     if (error.message === 'Solicitud no encontrada') {
+     if (error.message === 'Persona no encontrada') {
        statusCode = 404;
+       message = error.message;
+     } else if (error.message === 'La persona no tiene una solicitud asociada') {
+       statusCode = 400;
        message = error.message;
      } else if (error.message === 'Usuario no encontrado o no es un recruiter') {
        statusCode = 400;
