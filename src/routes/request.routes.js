@@ -177,6 +177,62 @@ router.get('/people', [
 
 /**
  * @swagger
+ * /requests/assign-recruiter:
+ *   patch:
+ *     summary: Asignar un recruiter a una persona específica y cambiar estado de la solicitud a IN_PROGRESS
+ *     tags: [Requests]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - recruiterId
+ *               - personId
+ *             properties:
+ *               recruiterId:
+ *                 type: integer
+ *                 description: ID del usuario recruiter a asignar
+ *               personId:
+ *                 type: integer
+ *                 description: ID de la persona específica a asignar al recruiter
+ *     responses:
+ *       200:
+ *         description: Recruiter asignado a la persona y estado actualizado exitosamente
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                 requestId:
+ *                   type: integer
+ *                 personId:
+ *                   type: integer
+ *                 recruiterId:
+ *                   type: integer
+ *                 recruiterName:
+ *                   type: string
+ *                 newStatus:
+ *                   type: string
+ *       400:
+ *         description: Datos inválidos, usuario no es recruiter o persona sin solicitud asociada
+ *       404:
+ *         description: Persona no encontrada
+ *       500:
+ *         description: Error del servidor
+ */
+router.patch('/assign-recruiter', [
+  authMiddleware,
+  roleMiddleware(['RECRUITER'])
+], RequestController.assignRecruiter);
+
+/**
+ * @swagger
  * /requests/{requestId}/status:
  *   patch:
  *     summary: Actualizar el estado de una solicitud
@@ -231,61 +287,5 @@ router.patch('/:requestId/status', [
   authMiddleware,
   roleMiddleware(['ADMIN', 'MANAGER'])
 ], RequestController.updateStatus);
-
-/**
- * @swagger
- * /api/v1/requests/assign-recruiter:
- *   patch:
- *     summary: Asignar un recruiter a una persona específica y cambiar estado de la solicitud a IN_PROGRESS
- *     tags: [Requests]
- *     security:
- *       - bearerAuth: []
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required:
- *               - recruiterId
- *               - personId
- *             properties:
- *               recruiterId:
- *                 type: integer
- *                 description: ID del usuario recruiter a asignar
- *               personId:
- *                 type: integer
- *                 description: ID de la persona específica a asignar al recruiter
- *     responses:
- *       200:
- *         description: Recruiter asignado a la persona y estado actualizado exitosamente
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 message:
- *                   type: string
- *                 requestId:
- *                   type: integer
- *                 personId:
- *                   type: integer
- *                 recruiterId:
- *                   type: integer
- *                 recruiterName:
- *                   type: string
- *                 newStatus:
- *                   type: string
- *       400:
- *         description: Datos inválidos, usuario no es recruiter o persona sin solicitud asociada
- *       404:
- *         description: Persona no encontrada
- *       500:
- *         description: Error del servidor
- */
-router.patch('/assign-recruiter', [
-  authMiddleware,
-  roleMiddleware(['RECRUITER'])
-], RequestController.assignRecruiter);
 
 module.exports = router;
