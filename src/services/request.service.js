@@ -181,6 +181,7 @@ const RequestService = {
         "fullname",
         "phone",
         "status",
+        "observations",
         [
           sequelize.literal(`
             CASE 
@@ -298,7 +299,7 @@ const RequestService = {
     }
   }
 
-
+  
 
 };
 
