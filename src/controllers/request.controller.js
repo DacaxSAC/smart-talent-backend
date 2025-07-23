@@ -42,7 +42,14 @@ const RequestController = {
   // Obtener todas las personas con su entidad
   getAllPeople: async (req, res) => {
     try {
-      const result = await RequestService.getAllPeopleWithEntities();
+      let { status } = req.query;
+      
+      // Si status es un string con comas, convertir a array
+      if (status && typeof status === 'string' && status.includes(',')) {
+        status = status.split(',').map(s => s.trim());
+      }
+      
+      const result = await RequestService.getAllPeopleWithEntities(status);
       res.status(200).json(result);
     } catch (error) {
       console.error('Error al obtener personas:', error);

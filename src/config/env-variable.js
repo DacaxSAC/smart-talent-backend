@@ -1,3 +1,5 @@
+require('dotenv').config(); // ✅ Cargar al inicio
+
 //auth variables
 const JWT_SECRET = process.env.JWT_SECRET;
 const JWT_EXPIRE = process.env.JWT_EXPIRE;
@@ -15,7 +17,6 @@ const PASS_EMAIL = process.env.PASS_EMAIL;
 
 //firebase variables
 const FIREBASE_SERVICE_ACCOUNT_JSON = process.env.FIREBASE_SERVICE_ACCOUNT_JSON;
-
 
 module.exports = {
   JWT_SECRET,

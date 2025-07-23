@@ -15,18 +15,13 @@ const initDatabase = async () => {
         permissions: ['CREATE', 'READ', 'UPDATE', 'DELETE']
       },
       {
-        name: 'MANAGER',
+        name: 'RECRUITER',
         description: 'Gerente con acceso a gestión y reportes',
         permissions: ['CREATE', 'READ', 'UPDATE']
       },
       {
         name: 'USER',
         description: 'Usuario estándar del sistema',
-        permissions: ['READ']
-      },
-      {
-        name: 'GUEST',
-        description: 'Usuario invitado con acceso limitado',
         permissions: ['READ']
       }
     ];
@@ -45,18 +40,11 @@ const initDatabase = async () => {
         roleName: 'ADMIN'
       },
       {
-        username: 'manager',
-        email: 'manager@smarttalent.com',
-        password: 'Manager@123',
+        username: 'recruiter',
+        email: 'recruiter@smarttalent.com',
+        password: 'Recruiter@123',
         active: true,
-        roleName: 'MANAGER'
-      },
-      {
-        username: 'guest',
-        email: 'guest@smarttalent.com',
-        password: 'Guest@123',
-        active: true,
-        roleName: 'GUEST'
+        roleName: 'RECRUITER'
       }
     ];
 
@@ -108,7 +96,7 @@ const initDatabase = async () => {
       email: 'contact@dacax.dev',
       active: true
     });
-    console.log('Entidad DUCZ por defecto creada');
+    console.log('Entidad DUCZ por defecto creada', entidadDucz);
 
     // Crear tipos de documentos predeterminados
     const documentTypes = [

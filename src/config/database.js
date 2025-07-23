@@ -1,13 +1,13 @@
+require('dotenv').config(); // ✅ Cargar PRIMERO
 const { Sequelize } = require('sequelize');
-const { DB_CONNECTION_STRING } = require('./env-variable');
-require('dotenv').config();
+const { DB_CONNECTION_STRING } = require('./env-variable'); // ✅ Ahora sí tendrá el valor
 
 // Configuración de la conexión a PostgreSQL
 const sequelize = new Sequelize(DB_CONNECTION_STRING, {
   dialect: 'postgres',
   dialectOptions: {
     ssl: {
-      require: true, // verificar si es false en caso de error
+      require: true,
       rejectUnauthorized: false,
     },
   },

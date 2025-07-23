@@ -146,6 +146,20 @@ router.get('/entity/:entityId/people', [
  *     tags: [Requests]
  *     security:
  *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: status
+ *         schema:
+ *           oneOf:
+ *             - type: string
+ *               enum: [PENDING, IN_PROGRESS, COMPLETED, REJECTED, OBSERVED]
+ *             - type: array
+ *               items:
+ *                 type: string
+ *                 enum: [PENDING, IN_PROGRESS, COMPLETED, REJECTED, OBSERVED]
+ *         required: false
+ *         description: Filtrar personas por estado (opcional). Puede ser un estado único o múltiples estados separados por comas
+ *         example: "PENDING,IN_PROGRESS"
  *     responses:
  *       200:
  *         description: Lista de personas obtenida exitosamente
