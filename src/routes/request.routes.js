@@ -177,6 +177,66 @@ router.get('/people', [
 
 /**
  * @swagger
+ * /requests/person/update-status:
+ *   patch:
+ *     summary: Actualizar solo el estado de una persona específica
+ *     tags: [Requests]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - personId
+ *               - status
+ *             properties:
+ *               personId:
+ *                 type: integer
+ *                 description: ID de la persona
+ *               status:
+ *                 type: string
+ *                 enum: [PENDING, IN_PROGRESS, OBSERVED, APPROVED, REJECTED]
+ *                 description: Nuevo estado de la persona
+ *     responses:
+ *       200:
+ *         description: Estado de persona actualizado exitosamente
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                 personId:
+ *                   type: integer
+ *                 newStatus:
+ *                   type: string
+ *                 personUpdated:
+ *                   type: object
+ *                   properties:
+ *                     id:
+ *                       type: integer
+ *                     fullname:
+ *                       type: string
+ *                     status:
+ *                       type: string
+ *       400:
+ *         description: Datos inválidos
+ *       404:
+ *         description: Persona no encontrada
+ *       500:
+ *         description: Error del servidor
+ */
+router.patch('/person/update-status', [
+  authMiddleware,
+  roleMiddleware(['USER', 'RECRUITER'])
+], RequestController.updatePersonStatus);
+
+/**
+ * @swagger
  * /requests/assign-recruiter:
  *   patch:
  *     summary: Asignar un recruiter a una persona específica y cambiar estado de la solicitud a IN_PROGRESS
@@ -293,65 +353,5 @@ router.patch('/give-observations', [
   authMiddleware,
   roleMiddleware(['RECRUITER'])
 ], RequestController.giveObservations);
-
-/**
- * @swagger
- * /requests/updatePersonStatus:
- *   patch:
- *     summary: Actualizar solo el estado de una persona específica
- *     tags: [Requests]
- *     security:
- *       - bearerAuth: []
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required:
- *               - personId
- *               - status
- *             properties:
- *               personId:
- *                 type: integer
- *                 description: ID de la persona
- *               status:
- *                 type: string
- *                 enum: [PENDING, IN_PROGRESS, OBSERVED, APPROVED, REJECTED]
- *                 description: Nuevo estado de la persona
- *     responses:
- *       200:
- *         description: Estado de persona actualizado exitosamente
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 message:
- *                   type: string
- *                 personId:
- *                   type: integer
- *                 newStatus:
- *                   type: string
- *                 personUpdated:
- *                   type: object
- *                   properties:
- *                     id:
- *                       type: integer
- *                     fullname:
- *                       type: string
- *                     status:
- *                       type: string
- *       400:
- *         description: Datos inválidos
- *       404:
- *         description: Persona no encontrada
- *       500:
- *         description: Error del servidor
- */
-router.patch('/updatePersonStatus', [
-  authMiddleware,
-  roleMiddleware(['ADMIN', 'MANAGER', 'RECRUITER'])
-], RequestController.updatePersonStatus);
 
 module.exports = router;
