@@ -234,19 +234,12 @@ router.patch('/:requestId/status', [
 
 /**
  * @swagger
- * /requests/{requestId}/assign-recruiter:
+ * /api/v1/requests/assign-recruiter:
  *   patch:
- *     summary: Asignar un recruiter a una solicitud y cambiar estado a IN_PROGRESS
+ *     summary: Asignar un recruiter a una persona específica y cambiar estado de la solicitud a IN_PROGRESS
  *     tags: [Requests]
  *     security:
  *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: requestId
- *         required: true
- *         schema:
- *           type: integer
- *         description: ID de la solicitud
  *     requestBody:
  *       required: true
  *       content:
@@ -255,13 +248,17 @@ router.patch('/:requestId/status', [
  *             type: object
  *             required:
  *               - recruiterId
+ *               - personId
  *             properties:
  *               recruiterId:
  *                 type: integer
  *                 description: ID del usuario recruiter a asignar
+ *               personId:
+ *                 type: integer
+ *                 description: ID de la persona específica a asignar al recruiter
  *     responses:
  *       200:
- *         description: Recruiter asignado y estado actualizado exitosamente
+ *         description: Recruiter asignado a la persona y estado actualizado exitosamente
  *         content:
  *           application/json:
  *             schema:
@@ -271,6 +268,8 @@ router.patch('/:requestId/status', [
  *                   type: string
  *                 requestId:
  *                   type: integer
+ *                 personId:
+ *                   type: integer
  *                 recruiterId:
  *                   type: integer
  *                 recruiterName:
@@ -278,15 +277,15 @@ router.patch('/:requestId/status', [
  *                 newStatus:
  *                   type: string
  *       400:
- *         description: Datos inválidos o usuario no es recruiter
+ *         description: Datos inválidos, usuario no es recruiter o persona sin solicitud asociada
  *       404:
- *         description: Solicitud no encontrada
+ *         description: Persona no encontrada
  *       500:
  *         description: Error del servidor
  */
-router.patch('/:requestId/assign-recruiter', [
+router.patch('/assign-recruiter', [
   authMiddleware,
-  roleMiddleware(['ADMIN', 'MANAGER'])
+  roleMiddleware(['RECRUITER'])
 ], RequestController.assignRecruiter);
 
 module.exports = router;

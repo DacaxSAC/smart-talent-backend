@@ -21,10 +21,6 @@ module.exports = (sequelize) => {
       type: DataTypes.BOOLEAN,
       defaultValue: true
     },
-    observations: {
-      type: DataTypes.TEXT,
-      allowNull: true
-    }
   }, {
     sequelize,
     modelName: 'Request'
