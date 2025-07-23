@@ -60,29 +60,6 @@ const RequestController = {
     }
   },
 
-  // Mover solicitud a estado IN_PROGRESS
-  moveToInProgress: async (req, res) => {
-    try {
-      const { requestId } = req.params;
-      
-      if (!requestId) {
-        return res.status(400).json({ 
-          message: 'ID de solicitud es requerido' 
-        });
-      }
-
-      const result = await RequestService.moveRequestToInProgress(requestId);
-      res.status(200).json(result);
-    } catch (error) {
-      console.error('Error al actualizar estado de solicitud:', error);
-      const statusCode = error.message === 'Solicitud no encontrada' ? 404 : 500;
-      res.status(statusCode).json({ 
-        message: error.message === 'Solicitud no encontrada' ? error.message : 'Error al actualizar el estado de la solicitud', 
-        error: error.message 
-      });
-    }
-  },
-
   // Actualizar estado de solicitud (método genérico)
   updateStatus: async (req, res) => {
     try {

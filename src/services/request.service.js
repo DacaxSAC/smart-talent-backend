@@ -270,9 +270,6 @@ const RequestService = {
     }
   },
 
-  async moveRequestToInProgress(requestId) {
-    return await this.updateRequestStatus(requestId, 'IN_PROGRESS');
-  }
 };
 
 module.exports = RequestService;
