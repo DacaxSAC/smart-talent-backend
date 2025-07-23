@@ -119,7 +119,7 @@ const EntityService = {
       include: [{
         model: User,
         as: 'user',
-        attributes: ['id', 'username', 'email'],
+        attributes: ['id', 'username', 'email','entityId'],
         include: [{
           model: Role,
           attributes: ['name'],

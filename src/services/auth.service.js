@@ -122,7 +122,8 @@ const AuthService = {
         id: user.id,
         username: user.username,
         email: user.email,
-        roles: roleNames
+        roles: roleNames,
+        entityId:user.entityId
       },
       token
     };
