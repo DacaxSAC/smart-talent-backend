@@ -229,7 +229,7 @@ router.get('/people', [
  */
 router.patch('/:requestId/status', [
   authMiddleware,
-  roleMiddleware(['ADMIN', 'MANAGER'])
+  roleMiddleware(['ADMIN', 'RECRUITER'])
 ], RequestController.updateStatus);
 
 /**
@@ -286,7 +286,7 @@ router.patch('/:requestId/status', [
  */
 router.patch('/:requestId/assign-recruiter', [
   authMiddleware,
-  roleMiddleware(['ADMIN', 'MANAGER'])
+  roleMiddleware(['ADMIN', 'RECRUITER'])
 ], RequestController.assignRecruiter);
 
 module.exports = router;
