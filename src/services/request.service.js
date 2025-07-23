@@ -297,9 +297,57 @@ const RequestService = {
       await t.rollback();
       throw error;
     }
-  }
+  },
 
-  
+  async giveObservations(personId, observations) {
+    const t = await sequelize.transaction();
+
+    try {
+      // Verificar que la persona existe
+      const person = await Person.findByPk(personId, {
+        include: [{
+          model: Request,
+          as: 'request'
+        }],
+        transaction: t
+      });
+
+      if (!person) {
+        await t.rollback();
+        throw new Error('Persona no encontrada');
+      }
+
+      // Actualizar observaciones y estado de la persona específica
+      await Person.update(
+        { 
+          observations: observations,
+          status: 'OBSERVED'
+        },
+        { 
+          where: { id: personId },
+          transaction: t 
+        }
+      );
+
+      await t.commit();
+
+      return {
+        message: 'Observaciones agregadas exitosamente a la persona',
+        personId,
+        observations,
+        personUpdated: {
+          id: person.id,
+          fullname: person.fullname,
+          observations: observations,
+          status: 'OBSERVED'
+        },
+        requestId: person.request ? person.request.id : null
+      };
+    } catch (error) {
+      await t.rollback();
+      throw error;
+    }
+  }
 
 };
 
