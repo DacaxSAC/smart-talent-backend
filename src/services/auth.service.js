@@ -208,7 +208,10 @@ const AuthService = {
     });
 
     if (!user) {
-      throw new Error('Token inválido o expirado');
+      return{
+        success: false,
+        message: 'Token inválido o expirado'
+      }
     }
 
     // Hashear nueva contraseña
@@ -221,7 +224,8 @@ const AuthService = {
       resetPasswordExpires: null
     });
 
-    return {
+    return { 
+      success: true,
       message: 'Contraseña restablecida exitosamente'
     };
   }
