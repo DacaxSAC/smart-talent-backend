@@ -1,5 +1,6 @@
 const { Request, Person, Document, Resource, Entity } = require('../models');
 const { sequelize } = require('../config/database');
+const { Op } = require('sequelize'); // ✅ Importar Op directamente
 
 const RequestService = {
   async createRequest(data) {
@@ -138,7 +139,8 @@ const RequestService = {
       // Si status es un array, usar operador IN
       // Si es un string, convertir a array para consistencia
       const statusArray = Array.isArray(status) ? status : [status];
-      whereConditions.status = statusArray.length === 1 ? statusArray[0] : { [sequelize.Op.in]: statusArray };
+      // En la línea 141, cambiar:
+      whereConditions.status = statusArray.length === 1 ? statusArray[0] : { [Op.in]: statusArray };
     }
 
     // Obtener todas las personas con sus relaciones
