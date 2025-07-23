@@ -233,6 +233,69 @@ router.patch('/assign-recruiter', [
 
 /**
  * @swagger
+ * /requests/give-observations:
+ *   patch:
+ *     summary: Agregar observaciones a una persona específica y cambiar estado a OBSERVED
+ *     tags: [Requests]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - personId
+ *               - observations
+ *             properties:
+ *               personId:
+ *                 type: integer
+ *                 description: ID de la persona
+ *               observations:
+ *                 type: string
+ *                 description: Observaciones a agregar a la persona específica
+ *     responses:
+ *       200:
+ *         description: Observaciones agregadas exitosamente
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                 personId:
+ *                   type: integer
+ *                 observations:
+ *                   type: string
+ *                 personUpdated:
+ *                   type: object
+ *                   properties:
+ *                     id:
+ *                       type: integer
+ *                     fullname:
+ *                       type: string
+ *                     observations:
+ *                       type: string
+ *                     status:
+ *                       type: string
+ *                 requestId:
+ *                   type: integer
+ *       400:
+ *         description: Datos inválidos
+ *       404:
+ *         description: Persona no encontrada
+ *       500:
+ *         description: Error del servidor
+ */
+router.patch('/give-observations', [
+  authMiddleware,
+  roleMiddleware(['RECRUITER'])
+], RequestController.giveObservations);
+
+/**
+ * @swagger
  * /requests/{requestId}/status:
  *   patch:
  *     summary: Actualizar el estado de una solicitud
@@ -287,71 +350,5 @@ router.patch('/:requestId/status', [
   authMiddleware,
   roleMiddleware(['ADMIN', 'MANAGER'])
 ], RequestController.updateStatus);
-
-/**
- * @swagger
- * /requests/persons/{personId}/observations:
- *   patch:
- *     summary: Agregar observaciones a una persona específica y cambiar estado a OBSERVED
- *     tags: [Requests]
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: personId
- *         required: true
- *         schema:
- *           type: integer
- *         description: ID de la persona
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required:
- *               - observations
- *             properties:
- *               observations:
- *                 type: string
- *                 description: Observaciones a agregar a la persona específica
- *     responses:
- *       200:
- *         description: Observaciones agregadas exitosamente
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 message:
- *                   type: string
- *                 personId:
- *                   type: integer
- *                 observations:
- *                   type: string
- *                 personUpdated:
- *                   type: object
- *                   properties:
- *                     id:
- *                       type: integer
- *                     fullname:
- *                       type: string
- *                     observations:
- *                       type: string
- *                     status:
- *                       type: string
- *                 requestId:
- *                   type: integer
- *       400:
- *         description: Datos inválidos
- *       404:
- *         description: Persona no encontrada
- *       500:
- *         description: Error del servidor
- */
-router.patch('/persons/:personId/observations', [
-  authMiddleware,
-  roleMiddleware(['ADMIN', 'MANAGER', 'RECRUITER'])
-], RequestController.giveObservations);
 
 module.exports = router;
