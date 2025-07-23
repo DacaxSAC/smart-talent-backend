@@ -120,30 +120,13 @@ const RequestService = {
       ],
     });
 
-    // Get all people and calculate their status
+    // Get all people with their actual status
     const people = requests.reduce((acc, request) => {
       const persons = request.persons || [];
       return acc.concat(
         persons.map((person) => {
-          const documents = person.documents || [];
-          let status = "PENDING";
-
-          const hasCompletedDocs = documents.some(
-            (doc) => doc.status === "Realizado"
-          );
-          const hasPendingDocs = documents.some(
-            (doc) => doc.status !== "Realizado"
-          );
-
-          if (hasCompletedDocs && hasPendingDocs) {
-            status = "IN_PROGRESS";
-          } else if (!hasPendingDocs && documents.length > 0) {
-            status = "COMPLETED";
-          }
-
           return {
             ...person.toJSON(),
-            status,
           };
         })
       );
@@ -198,6 +181,7 @@ const RequestService = {
         "fullname",
         "phone",
         "status",
+        "observations",
         [
           sequelize.literal(`
             CASE 
@@ -314,6 +298,8 @@ const RequestService = {
       throw error;
     }
   }
+
+  
 
 };
 
