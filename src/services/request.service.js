@@ -205,6 +205,43 @@ const RequestService = {
       message: 'Personas obtenidas exitosamente',
       people
     };
+  },
+
+  async updateRequestStatus(requestId, newStatus) {
+    const t = await sequelize.transaction();
+
+    try {
+      // Verificar que la solicitud existe
+      const request = await Request.findByPk(requestId, { transaction: t });
+      if (!request) {
+        await t.rollback();
+        throw new Error('Solicitud no encontrada');
+      }
+
+      // Actualizar el estado de la solicitud
+      await Request.update(
+        { status: newStatus },
+        { 
+          where: { id: requestId },
+          transaction: t 
+        }
+      );
+
+      await t.commit();
+
+      return {
+        message: `Estado de solicitud actualizado a ${newStatus}`,
+        requestId,
+        newStatus
+      };
+    } catch (error) {
+      await t.rollback();
+      throw error;
+    }
+  },
+
+  async moveRequestToInProgress(requestId) {
+    return await this.updateRequestStatus(requestId, 'IN_PROGRESS');
   }
 };
 

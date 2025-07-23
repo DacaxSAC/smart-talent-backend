@@ -12,6 +12,11 @@ module.exports = (sequelize) => {
       type: DataTypes.INTEGER,
       allowNull: false
     },
+    status: {
+      type: DataTypes.ENUM('PENDING', 'IN_PROGRESS', 'COMPLETED', 'REJECTED', 'OBSERVED'),
+      defaultValue: 'PENDING',
+      allowNull: false
+    },
     active: {
       type: DataTypes.BOOLEAN,
       defaultValue: true

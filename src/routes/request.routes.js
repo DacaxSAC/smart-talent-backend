@@ -175,4 +175,106 @@ router.get('/people', [
   roleMiddleware(['ADMIN', 'MANAGER'])
 ], RequestController.getAllPeople);
 
+/**
+ * @swagger
+ * /requests/{requestId}/move-to-progress:
+ *   patch:
+ *     summary: Mover una solicitud de PENDING a IN_PROGRESS
+ *     tags: [Requests]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: requestId
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: ID de la solicitud
+ *     responses:
+ *       200:
+ *         description: Estado de solicitud actualizado exitosamente
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "Estado de solicitud actualizado a IN_PROGRESS"
+ *                 requestId:
+ *                   type: integer
+ *                 newStatus:
+ *                   type: string
+ *                   example: "IN_PROGRESS"
+ *       400:
+ *         description: ID de solicitud requerido
+ *       401:
+ *         description: No autenticado
+ *       404:
+ *         description: Solicitud no encontrada
+ *       500:
+ *         description: Error del servidor
+ */
+router.patch('/:requestId/move-to-progress', [
+  authMiddleware,
+  roleMiddleware(['ADMIN', 'MANAGER'])
+], RequestController.moveToInProgress);
+
+/**
+ * @swagger
+ * /requests/{requestId}/status:
+ *   patch:
+ *     summary: Actualizar el estado de una solicitud
+ *     tags: [Requests]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: requestId
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: ID de la solicitud
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - status
+ *             properties:
+ *               status:
+ *                 type: string
+ *                 enum: [PENDING, IN_PROGRESS, COMPLETED, REJECTED, OBSERVED]
+ *                 description: Nuevo estado de la solicitud
+ *     responses:
+ *       200:
+ *         description: Estado de solicitud actualizado exitosamente
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "Estado de solicitud actualizado a IN_PROGRESS"
+ *                 requestId:
+ *                   type: integer
+ *                 newStatus:
+ *                   type: string
+ *       400:
+ *         description: ID de solicitud y estado son requeridos
+ *       401:
+ *         description: No autenticado
+ *       404:
+ *         description: Solicitud no encontrada
+ *       500:
+ *         description: Error del servidor
+ */
+router.patch('/:requestId/status', [
+  authMiddleware,
+  roleMiddleware(['ADMIN', 'MANAGER'])
+], RequestController.updateStatus);
+
 module.exports = router;
