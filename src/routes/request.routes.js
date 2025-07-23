@@ -232,4 +232,61 @@ router.patch('/:requestId/status', [
   roleMiddleware(['ADMIN', 'MANAGER'])
 ], RequestController.updateStatus);
 
+/**
+ * @swagger
+ * /requests/{requestId}/assign-recruiter:
+ *   patch:
+ *     summary: Asignar un recruiter a una solicitud y cambiar estado a IN_PROGRESS
+ *     tags: [Requests]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: requestId
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: ID de la solicitud
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - recruiterId
+ *             properties:
+ *               recruiterId:
+ *                 type: integer
+ *                 description: ID del usuario recruiter a asignar
+ *     responses:
+ *       200:
+ *         description: Recruiter asignado y estado actualizado exitosamente
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                 requestId:
+ *                   type: integer
+ *                 recruiterId:
+ *                   type: integer
+ *                 recruiterName:
+ *                   type: string
+ *                 newStatus:
+ *                   type: string
+ *       400:
+ *         description: Datos inválidos o usuario no es recruiter
+ *       404:
+ *         description: Solicitud no encontrada
+ *       500:
+ *         description: Error del servidor
+ */
+router.patch('/:requestId/assign-recruiter', [
+  authMiddleware,
+  roleMiddleware(['ADMIN', 'MANAGER'])
+], RequestController.assignRecruiter);
+
 module.exports = router;

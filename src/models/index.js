@@ -29,6 +29,9 @@ Role.belongsToMany(User, { through: 'UserRoles' });
 Entity.hasOne(User, { foreignKey: 'entityId', as: 'user'});
 User.belongsTo(Entity, { foreignKey: 'entityId', as: 'entity' });
 
+User.belongsToMany(Request, { through: 'UserRequests' });
+Request.belongsToMany(User, { through: 'UserRequests' });
+
 Entity.hasMany(Request, { foreignKey: 'entityId', as: 'requests' });
 Request.belongsTo(Entity, { foreignKey: 'entityId', as: 'entity' });
 

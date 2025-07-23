@@ -80,9 +80,43 @@ const RequestController = {
       res.status(statusCode).json({ 
         message: error.message === 'Solicitud no encontrada' ? error.message : 'Error al actualizar el estado de la solicitud', 
         error: error.message 
-      });
-    }
-  }
+     });
+   }
+ },
+
+ // Asignar recruiter y mover a IN_PROGRESS
+ assignRecruiter: async (req, res) => {
+   try {
+     const { requestId } = req.params;
+     const { recruiterId } = req.body;
+     
+     if (!requestId || !recruiterId) {
+       return res.status(400).json({ 
+         message: 'ID de solicitud y ID de recruiter son requeridos' 
+       });
+     }
+
+     const result = await RequestService.assignRecruiterAndMoveToProgress(requestId, recruiterId);
+     res.status(200).json(result);
+   } catch (error) {
+     console.error('Error al asignar recruiter y actualizar estado:', error);
+     let statusCode = 500;
+     let message = 'Error al asignar recruiter y actualizar el estado de la solicitud';
+     
+     if (error.message === 'Solicitud no encontrada') {
+       statusCode = 404;
+       message = error.message;
+     } else if (error.message === 'Usuario no encontrado o no es un recruiter') {
+       statusCode = 400;
+       message = error.message;
+     }
+     
+     res.status(statusCode).json({ 
+       message, 
+       error: error.message 
+     });
+   }
+ }
 };
 
 module.exports = { RequestController };

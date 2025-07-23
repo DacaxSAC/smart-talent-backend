@@ -20,6 +20,10 @@ module.exports = (sequelize) => {
     active: {
       type: DataTypes.BOOLEAN,
       defaultValue: true
+    },
+    observations: {
+      type: DataTypes.TEXT,
+      allowNull: true
     }
   }, {
     sequelize,

@@ -270,6 +270,64 @@ const RequestService = {
     }
   },
 
+  async moveRequestToInProgress(requestId) {
+    return await this.updateRequestStatus(requestId, 'IN_PROGRESS');
+  },
+
+  async assignRecruiterAndMoveToProgress(requestId, recruiterId) {
+    const t = await sequelize.transaction();
+
+    try {
+      // Verificar que la solicitud existe
+      const request = await Request.findByPk(requestId, { transaction: t });
+      if (!request) {
+        await t.rollback();
+        throw new Error('Solicitud no encontrada');
+      }
+
+      // Verificar que el usuario existe y es un recruiter
+      const { User, Role } = require('../models');
+      const recruiter = await User.findByPk(recruiterId, {
+        include: [{
+          model: Role,
+          through: { attributes: [] },
+          where: { name: 'RECRUITER' }
+        }],
+        transaction: t
+      });
+
+      if (!recruiter) {
+        await t.rollback();
+        throw new Error('Usuario no encontrado o no es un recruiter');
+      }
+
+      // Actualizar el estado de la solicitud a IN_PROGRESS
+      await Request.update(
+        { status: 'IN_PROGRESS' },
+        { 
+          where: { id: requestId },
+          transaction: t 
+        }
+      );
+
+      // Asignar el recruiter a la solicitud (relación many-to-many)
+      await request.addUser(recruiter, { transaction: t });
+
+      await t.commit();
+
+      return {
+        message: 'Solicitud asignada al recruiter y movida a IN_PROGRESS',
+        requestId,
+        recruiterId,
+        recruiterName: recruiter.name,
+        newStatus: 'IN_PROGRESS'
+      };
+    } catch (error) {
+      await t.rollback();
+      throw error;
+    }
+  }
+
 };
 
 module.exports = RequestService;
