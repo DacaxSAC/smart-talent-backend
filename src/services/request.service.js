@@ -1,6 +1,6 @@
-const { Request, Person, Document, Resource, Entity } = require('../models');
-const { sequelize } = require('../config/database');
-const { Op } = require('sequelize'); // ✅ Importar Op directamente
+const { Request, Person, Document, Resource, Entity } = require("../models");
+const { sequelize } = require("../config/database");
+const { Op } = require("sequelize");
 
 const RequestService = {
   async createRequest(data) {
@@ -13,24 +13,31 @@ const RequestService = {
       const entity = await Entity.findByPk(entityId, { transaction: t });
       if (!entity) {
         await t.rollback();
-        throw new Error('Entidad no encontrada');
+        throw new Error("Entidad no encontrada");
       }
 
       // Crear la solicitud
-      const request = await Request.create({
-        entityId,
-        status: 'PENDING'
-      }, { transaction: t });
+      const request = await Request.create(
+        {
+          entityId,
+          status: "PENDING",
+        },
+        { transaction: t }
+      );
 
       // Crear las personas y sus documentos/recursos asociados
-      const createdPeople = await Promise.all(people.map(async (personData) => {
-        // Crear persona con los campos actualizados
-        const person = await Person.create({
-          dni: personData.dni,
-          fullname: personData.fullname,
-          phone: personData.phone,
-          requestId: request.id
-        }, { transaction: t });
+      const createdPeople = await Promise.all(
+        people.map(async (personData) => {
+          // Crear persona con los campos actualizados
+          const person = await Person.create(
+            {
+              dni: personData.dni,
+              fullname: personData.fullname,
+              phone: personData.phone,
+              requestId: request.id,
+            },
+            { transaction: t }
+          );
 
         // Crear documentos para esta persona
         const createdDocuments = await Promise.all(
@@ -54,27 +61,28 @@ const RequestService = {
               })
             );
 
-            return {
-              ...document.toJSON(),
-              resources: createdResources
-            };
-          })
-        );
+              return {
+                ...document.toJSON(),
+                resources: createdResources,
+              };
+            })
+          );
 
-        return {
-          ...person.toJSON(),
-          documents: createdDocuments
-        };
-      }));
+          return {
+            ...person.toJSON(),
+            documents: createdDocuments,
+          };
+        })
+      );
 
       await t.commit();
 
       return {
-        message: 'Solicitud creada exitosamente',
+        message: "Solicitud creada exitosamente",
         request: {
           ...request.toJSON(),
-          people: createdPeople
-        }
+          people: createdPeople,
+        },
       };
     } catch (error) {
       await t.rollback();
@@ -86,52 +94,64 @@ const RequestService = {
     // Verificar que la entidad existe
     const entity = await Entity.findByPk(entityId);
     if (!entity) {
-      throw new Error('Entidad no encontrada');
+      throw new Error("Entidad no encontrada");
     }
 
     // Obtener todas las solicitudes de la entidad
     const requests = await Request.findAll({
       where: { entityId },
-      include: [{
-        model: Person,
-        as: 'persons',
-        include: [{
-          model: Document,
-          as: 'documents',
-          include: [{
-            model: Resource,
-            as: 'resources'
-          }]
-        }]
-      }]
+      include: [
+        {
+          model: Person,
+          as: "persons",
+          include: [
+            {
+              model: Document,
+              as: "documents",
+              include: [
+                {
+                  model: Resource,
+                  as: "resources",
+                },
+              ],
+            },
+          ],
+        },
+      ],
     });
 
     // Get all people and calculate their status
     const people = requests.reduce((acc, request) => {
       const persons = request.persons || [];
-      return acc.concat(persons.map(person => {
-        const documents = person.documents || [];
-        let status = 'PENDING';
-        
-        const hasCompletedDocs = documents.some(doc => doc.status === 'Realizado');
-        const hasPendingDocs = documents.some(doc => doc.status !== 'Realizado');
-        
-        if (hasCompletedDocs && hasPendingDocs) {
-          status = 'IN_PROGRESS';
-        } else if (!hasPendingDocs && documents.length > 0) {
-          status = 'COMPLETED';
-        }
-        
-        return {
-          ...person.toJSON(),
-          status
-        };
-      }));
+      return acc.concat(
+        persons.map((person) => {
+          const documents = person.documents || [];
+          let status = "PENDING";
+
+          const hasCompletedDocs = documents.some(
+            (doc) => doc.status === "Realizado"
+          );
+          const hasPendingDocs = documents.some(
+            (doc) => doc.status !== "Realizado"
+          );
+
+          if (hasCompletedDocs && hasPendingDocs) {
+            status = "IN_PROGRESS";
+          } else if (!hasPendingDocs && documents.length > 0) {
+            status = "COMPLETED";
+          }
+
+          return {
+            ...person.toJSON(),
+            status,
+          };
+        })
+      );
     }, []);
 
     return {
-      message: 'Personas obtenidas exitosamente',
-      people
+      message: "Personas obtenidas exitosamente",
+      people,
     };
   },
 
@@ -143,32 +163,40 @@ const RequestService = {
       // Si es un string, convertir a array para consistencia
       const statusArray = Array.isArray(status) ? status : [status];
       // En la línea 141, cambiar:
-      whereConditions.status = statusArray.length === 1 ? statusArray[0] : { [Op.in]: statusArray };
+      whereConditions.status =
+        statusArray.length === 1 ? statusArray[0] : { [Op.in]: statusArray };
     }
 
     // Obtener todas las personas con sus relaciones
     const people = await Person.findAll({
       where: whereConditions,
-      include: [{
-        model: Request,
-        as: 'request',
-        include: [{
-          model: Entity,
-          as: 'entity'
-        }]
-      }, {
-        model: Document,
-        as: 'documents',
-        include: [{
-          model: Resource,
-          as: 'resources'
-        }]
-      }],
+      include: [
+        {
+          model: Request,
+          as: "request",
+          include: [
+            {
+              model: Entity,
+              as: "entity",
+            },
+          ],
+        },
+        {
+          model: Document,
+          as: "documents",
+          include: [
+            {
+              model: Resource,
+              as: "resources",
+            },
+          ],
+        },
+      ],
       attributes: [
-        'id',
-        'dni', 
-        'fullname',
-        'phone',
+        "id",
+        "dni",
+        "fullname",
+        "phone",
         [
           sequelize.literal(`
             CASE 
@@ -176,7 +204,7 @@ const RequestService = {
               ELSE CONCAT("request->entity"."firstName", ' ', "request->entity"."paternalSurname", ' ', "request->entity"."maternalSurname")
             END
           `),
-          'owner'
+          "owner",
         ],
         [
           sequelize.literal(`
@@ -198,14 +226,14 @@ const RequestService = {
               ELSE 'PENDING'
             END
           `),
-          'status'
-        ]
-      ]
+          "status",
+        ],
+      ],
     });
 
     return {
-      message: 'Personas obtenidas exitosamente',
-      people
+      message: "Personas obtenidas exitosamente",
+      people,
     };
   },
 
