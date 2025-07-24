@@ -189,7 +189,7 @@ const RequestService = {
                 "name",
                 "value",
                 "documentId",
-                [sequelize.literal('"persons->documents->resources->resourceType"."allowedFileTypes"'), 'allowedFileTypes']
+                [sequelize.literal('"documents->resources->resourceType"."allowedFileTypes"'), 'allowedFileTypes']
               ],
               include: [
                 {
