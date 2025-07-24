@@ -5,7 +5,7 @@ const { authMiddleware, roleMiddleware } = require('../middleware/auth.middlewar
 
 /**
  * @swagger
- * /api/v1/resources/update-multiple:
+ * /resources/update-multiple:
  *   patch:
  *     summary: Actualizar múltiples recursos de forma masiva
  *     tags: [Resources]
@@ -76,7 +76,7 @@ router.patch('/update-multiple', [
 
 /**
  * @swagger
- * /api/v1/resources/{id}:
+ * /resources/{id}:
  *   get:
  *     summary: Obtener un recurso por ID
  *     tags: [Resources]
@@ -123,7 +123,7 @@ router.get('/:id', [
 
 /**
  * @swagger
- * /api/v1/resources/{id}/value:
+ * /resources/{id}/value:
  *   patch:
  *     summary: Actualizar el valor de un recurso específico
  *     tags: [Resources]
