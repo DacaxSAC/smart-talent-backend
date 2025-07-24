@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { RequestController } = require('../controllers/request.controller');
+const RequestController = require('../controllers/request.controller');
 const { authMiddleware, roleMiddleware } = require('../middleware/auth.middleware');
 
 /**
@@ -177,6 +177,66 @@ router.get('/people', [
 
 /**
  * @swagger
+ * /requests/person/update-status:
+ *   patch:
+ *     summary: Actualizar solo el estado de una persona específica
+ *     tags: [Requests]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - personId
+ *               - status
+ *             properties:
+ *               personId:
+ *                 type: integer
+ *                 description: ID de la persona
+ *               status:
+ *                 type: string
+ *                 enum: [PENDING, IN_PROGRESS, OBSERVED, APPROVED, REJECTED]
+ *                 description: Nuevo estado de la persona
+ *     responses:
+ *       200:
+ *         description: Estado de persona actualizado exitosamente
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                 personId:
+ *                   type: integer
+ *                 newStatus:
+ *                   type: string
+ *                 personUpdated:
+ *                   type: object
+ *                   properties:
+ *                     id:
+ *                       type: integer
+ *                     fullname:
+ *                       type: string
+ *                     status:
+ *                       type: string
+ *       400:
+ *         description: Datos inválidos
+ *       404:
+ *         description: Persona no encontrada
+ *       500:
+ *         description: Error del servidor
+ */
+router.patch('/person/update-status', [
+  authMiddleware,
+  roleMiddleware(['USER', 'RECRUITER'])
+], RequestController.updatePersonStatus);
+
+/**
+ * @swagger
  * /requests/assign-recruiter:
  *   patch:
  *     summary: Asignar un recruiter a una persona específica y cambiar estado de la solicitud a IN_PROGRESS
@@ -233,19 +293,12 @@ router.patch('/assign-recruiter', [
 
 /**
  * @swagger
- * /requests/{requestId}/status:
+ * /requests/give-observations:
  *   patch:
- *     summary: Actualizar el estado de una solicitud
+ *     summary: Agregar observaciones a una persona específica y cambiar estado a OBSERVED
  *     tags: [Requests]
  *     security:
  *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: requestId
- *         required: true
- *         schema:
- *           type: integer
- *         description: ID de la solicitud
  *     requestBody:
  *       required: true
  *       content:
@@ -253,15 +306,18 @@ router.patch('/assign-recruiter', [
  *           schema:
  *             type: object
  *             required:
- *               - status
+ *               - personId
+ *               - observations
  *             properties:
- *               status:
+ *               personId:
+ *                 type: integer
+ *                 description: ID de la persona
+ *               observations:
  *                 type: string
- *                 enum: [PENDING, IN_PROGRESS, COMPLETED, REJECTED, OBSERVED]
- *                 description: Nuevo estado de la solicitud
+ *                 description: Observaciones a agregar a la persona específica
  *     responses:
  *       200:
- *         description: Estado de solicitud actualizado exitosamente
+ *         description: Observaciones agregadas exitosamente
  *         content:
  *           application/json:
  *             schema:
@@ -269,23 +325,33 @@ router.patch('/assign-recruiter', [
  *               properties:
  *                 message:
  *                   type: string
- *                   example: "Estado de solicitud actualizado a IN_PROGRESS"
+ *                 personId:
+ *                   type: integer
+ *                 observations:
+ *                   type: string
+ *                 personUpdated:
+ *                   type: object
+ *                   properties:
+ *                     id:
+ *                       type: integer
+ *                     fullname:
+ *                       type: string
+ *                     observations:
+ *                       type: string
+ *                     status:
+ *                       type: string
  *                 requestId:
  *                   type: integer
- *                 newStatus:
- *                   type: string
  *       400:
- *         description: ID de solicitud y estado son requeridos
- *       401:
- *         description: No autenticado
+ *         description: Datos inválidos
  *       404:
- *         description: Solicitud no encontrada
+ *         description: Persona no encontrada
  *       500:
  *         description: Error del servidor
  */
-router.patch('/:requestId/status', [
+router.patch('/give-observations', [
   authMiddleware,
-  roleMiddleware(['ADMIN', 'RECRUITER'])
-], RequestController.updateStatus);
+  roleMiddleware(['RECRUITER'])
+], RequestController.giveObservations);
 
 module.exports = router;

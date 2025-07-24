@@ -47,6 +47,10 @@ Resource.belongsTo(Document, { foreignKey: 'documentId', as: 'document' });
 DocumentType.hasMany(Document, { foreignKey: 'documentTypeId', as: 'documents' });
 Document.belongsTo(DocumentType, { foreignKey: 'documentTypeId', as: 'documentType' });
 
+// Relación entre Resource y ResourceType
+Resource.belongsTo(ResourceType, { foreignKey: 'resourceTypeId', as: 'resourceType' });
+ResourceType.hasMany(Resource, { foreignKey: 'resourceTypeId', as: 'resources' });
+
 // Relación muchos a muchos entre DocumentType y ResourceType
 DocumentType.belongsToMany(ResourceType, { 
   through: 'DocumentTypeResources',

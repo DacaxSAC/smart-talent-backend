@@ -1,4 +1,4 @@
-const { Request, Person, Document, Resource, Entity } = require("../models");
+const { Request, Person, Document, Resource, Entity, ResourceType } = require("../models");
 const { sequelize } = require("../config/database");
 const { Op } = require("sequelize");
 
@@ -60,7 +60,6 @@ const RequestService = {
                   }, { transaction: t });
                 })
               );
-
               return {
                 ...document.toJSON(),
                 resources: createdResources,
@@ -112,6 +111,20 @@ const RequestService = {
                 {
                   model: Resource,
                   as: "resources",
+                  attributes: [
+                    "id",
+                    "name",
+                    "value",
+                    "documentId",
+                    [sequelize.literal('"persons->documents->resources->resourceType"."allowedFileTypes"'), 'allowedFileTypes']
+                  ],
+                  include: [
+                    {
+                      model: ResourceType,
+                      as: "resourceType",
+                      attributes: []
+                    }
+                  ]
                 },
               ],
             },
@@ -171,6 +184,20 @@ const RequestService = {
             {
               model: Resource,
               as: "resources",
+              attributes: [
+                "id",
+                "name",
+                "value",
+                "documentId",
+                [sequelize.literal('"documents->resources->resourceType"."allowedFileTypes"'), 'allowedFileTypes']
+              ],
+              include: [
+                {
+                  model: ResourceType,
+                  as: "resourceType",
+                  attributes: []
+                }
+              ]
             },
           ],
         },
@@ -198,43 +225,6 @@ const RequestService = {
       message: "Personas obtenidas exitosamente",
       people,
     };
-  },
-
-  async updateRequestStatus(requestId, newStatus) {
-    const t = await sequelize.transaction();
-
-    try {
-      // Verificar que la solicitud existe
-      const request = await Request.findByPk(requestId, { transaction: t });
-      if (!request) {
-        await t.rollback();
-        throw new Error('Solicitud no encontrada');
-      }
-
-      // Actualizar el estado de la solicitud
-      await Request.update(
-        { status: newStatus },
-        {
-          where: { id: requestId },
-          transaction: t
-        }
-      );
-
-      await t.commit();
-
-      return {
-        message: `Estado de solicitud actualizado a ${newStatus}`,
-        requestId,
-        newStatus
-      };
-    } catch (error) {
-      await t.rollback();
-      throw error;
-    }
-  },
-
-  async moveRequestToInProgress(requestId) {
-    return await this.updateRequestStatus(requestId, 'IN_PROGRESS');
   },
 
   async assignRecruiter(recruiterId, personId) {
@@ -274,9 +264,9 @@ const RequestService = {
       // Actualizar el estado de la solicitud a IN_PROGRESS
       await Person.update(
         { status: 'IN_PROGRESS' },
-        { 
+        {
           where: { id: person.id },
-          transaction: t 
+          transaction: t
         }
       );
 
@@ -297,9 +287,95 @@ const RequestService = {
       await t.rollback();
       throw error;
     }
-  }
+  },
 
-  
+  async giveObservations(personId, observations) {
+    const t = await sequelize.transaction();
+
+    try {
+      // Verificar que la persona existe
+      const person = await Person.findByPk(personId, {
+        include: [{
+          model: Request,
+          as: 'request'
+        }],
+        transaction: t
+      });
+
+      if (!person) {
+        await t.rollback();
+        throw new Error('Persona no encontrada');
+      }
+
+      // Actualizar observaciones y estado de la persona específica
+      await Person.update(
+        {
+          observations: observations,
+          status: 'OBSERVED'
+        },
+        {
+          where: { id: personId },
+          transaction: t
+        }
+      );
+
+      await t.commit();
+
+      return {
+        message: 'Observaciones agregadas exitosamente a la persona',
+        personId,
+        observations,
+        personUpdated: {
+          id: person.id,
+          fullname: person.fullname,
+          observations: observations,
+          status: 'OBSERVED'
+        },
+        requestId: person.request ? person.request.id : null
+      };
+    } catch (error) {
+      await t.rollback();
+      throw error;
+    }
+  },
+
+  async updatePersonStatus(personId, newStatus) {
+    const t = await sequelize.transaction();
+
+    try {
+      // Verificar que la persona existe
+      const person = await Person.findByPk(personId, { transaction: t });
+      if (!person) {
+        await t.rollback();
+        throw new Error('Persona no encontrada');
+      }
+
+      // Actualizar solo el estado de la persona
+      await Person.update(
+        { status: newStatus },
+        {
+          where: { id: personId },
+          transaction: t
+        }
+      );
+
+      await t.commit();
+
+      return {
+        message: `Estado de persona actualizado a ${newStatus}`,
+        personId,
+        newStatus,
+        personUpdated: {
+          id: person.id,
+          fullname: person.fullname,
+          status: newStatus
+        }
+      };
+    } catch (error) {
+      await t.rollback();
+      throw error;
+    }
+  }
 
 };
 

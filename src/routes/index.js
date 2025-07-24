@@ -6,6 +6,7 @@ const documentsRouter = require('./document.routes');
 const documentTypesRouter = require('./documentType.routes');
 const entitiesRouter = require('./entity.routes');
 const requestsRouter = require('./request.routes');
+const resourcesRouter = require('./resource.routes');
 const rolesRouter = require('./role.routes');
 const uploadsRouter = require('./upload.routes');
 const usersRouter = require('./user.routes');
@@ -25,6 +26,7 @@ function routerApi(app){
   router.use('/documents', documentsRouter);
   router.use('/document-types', documentTypesRouter);
   router.use('/requests', requestsRouter);
+  router.use('/resources', resourcesRouter);
   router.use('/upload', uploadsRouter);
   router.use('/api-docs', swaggerUI.serve);  
   router.get('/api-docs', swaggerUI.setup(swaggerSpec));
