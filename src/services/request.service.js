@@ -177,20 +177,11 @@ const RequestService = {
             {
               model: Resource,
               as: "resources",
-              attributes: [
-                'id',
-                'name',
-                'url',
-                'size',
-                'mimeType',
-                'resourceTypeId',
-                [sequelize.col('resources.resourceType.allowedFileTypes'), 'allowedFileTypes']
-              ],
               include: [
                 {
                   model: ResourceType,
                   as: "resourceType",
-                  attributes: []
+                  attributes: ['allowedFileTypes']
                 }
               ]
             },
