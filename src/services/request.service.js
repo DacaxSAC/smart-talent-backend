@@ -111,11 +111,18 @@ const RequestService = {
                 {
                   model: Resource,
                   as: "resources",
+                  attributes: [
+                    "id",
+                    "name",
+                    "value",
+                    "documentId",
+                    [sequelize.literal('"persons->documents->resources->resourceType"."allowedFileTypes"'), 'allowedFileTypes']
+                  ],
                   include: [
                     {
                       model: ResourceType,
                       as: "resourceType",
-                      attributes: ['allowedFileTypes']
+                      attributes: []
                     }
                   ]
                 },
@@ -177,11 +184,18 @@ const RequestService = {
             {
               model: Resource,
               as: "resources",
+              attributes: [
+                "id",
+                "name",
+                "value",
+                "documentId",
+                [sequelize.literal('"persons->documents->resources->resourceType"."allowedFileTypes"'), 'allowedFileTypes']
+              ],
               include: [
                 {
                   model: ResourceType,
                   as: "resourceType",
-                  attributes: ['allowedFileTypes']
+                  attributes: []
                 }
               ]
             },
