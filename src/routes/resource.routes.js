@@ -71,7 +71,7 @@ const { authMiddleware, roleMiddleware } = require('../middleware/auth.middlewar
  */
 router.patch('/update-multiple', [
   authMiddleware,
-  roleMiddleware(['ADMIN', 'MANAGER', 'RECRUITER'])
+  roleMiddleware(['ADMIN', 'MANAGER', 'RECRUITER','USER'])
 ], ResourceController.updateMultipleResources);
 
 /**
