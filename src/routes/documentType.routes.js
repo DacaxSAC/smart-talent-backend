@@ -7,7 +7,7 @@ const { DocumentTypeController } = require('../controllers/documentType.controll
  * /document-types/with-resource-types:
  *   get:
  *     tags:
- *       - Tipos de Documentos
+ *       - Types Document
  *     summary: Obtiene todos los tipos de documentos con sus recursos asociados
  *     description: Retorna una lista de todos los tipos de documentos activos junto con sus tipos de recursos asociados
  *     responses:

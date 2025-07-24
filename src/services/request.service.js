@@ -1,4 +1,4 @@
-const { Request, Person, Document, Resource, Entity } = require("../models");
+const { Request, Person, Document, Resource, Entity, ResourceType } = require("../models");
 const { sequelize } = require("../config/database");
 const { Op } = require("sequelize");
 
@@ -60,7 +60,6 @@ const RequestService = {
                   }, { transaction: t });
                 })
               );
-
               return {
                 ...document.toJSON(),
                 resources: createdResources,
@@ -112,6 +111,13 @@ const RequestService = {
                 {
                   model: Resource,
                   as: "resources",
+                  include: [
+                    {
+                      model: ResourceType,
+                      as: "resourceType",
+                      attributes: ['allowedFileTypes']
+                    }
+                  ]
                 },
               ],
             },
@@ -171,6 +177,22 @@ const RequestService = {
             {
               model: Resource,
               as: "resources",
+              attributes: [
+                'id',
+                'name',
+                'url',
+                'size',
+                'mimeType',
+                'resourceTypeId',
+                [sequelize.col('resources.resourceType.allowedFileTypes'), 'allowedFileTypes']
+              ],
+              include: [
+                {
+                  model: ResourceType,
+                  as: "resourceType",
+                  attributes: []
+                }
+              ]
             },
           ],
         },
@@ -237,9 +259,9 @@ const RequestService = {
       // Actualizar el estado de la solicitud a IN_PROGRESS
       await Person.update(
         { status: 'IN_PROGRESS' },
-        { 
+        {
           where: { id: person.id },
-          transaction: t 
+          transaction: t
         }
       );
 
@@ -282,13 +304,13 @@ const RequestService = {
 
       // Actualizar observaciones y estado de la persona específica
       await Person.update(
-        { 
+        {
           observations: observations,
           status: 'OBSERVED'
         },
-        { 
+        {
           where: { id: personId },
-          transaction: t 
+          transaction: t
         }
       );
 
