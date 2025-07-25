@@ -114,12 +114,17 @@ const EntityService = {
     }
   },
 
+  /**
+   * Obtiene todas las entidades (activas e inactivas) con sus usuarios asociados
+   * @returns {Array} Lista de todas las entidades
+   */
   async getAllEntities() {
     return await Entity.findAll({
       include: [{
         model: User,
         as: 'user',
-        attributes: ['id', 'username', 'email','entityId'],
+        attributes: ['id', 'username', 'email','entityId', 'active'],
+        required: false, // LEFT JOIN para incluir entidades sin usuario
         include: [{
           model: Role,
           attributes: ['name'],
@@ -129,12 +134,20 @@ const EntityService = {
     });
   },
 
+  /**
+   * Obtiene una entidad activa por ID con su usuario asociado
+   * @param {number} id - ID de la entidad
+   * @returns {Object} Entidad encontrada
+   */
   async getEntityById(id) {
     const entity = await Entity.findByPk(id, {
+      where: { active: true }, // Solo entidades activas
       include: [{
         model: User,
         as: 'user',
         attributes: ['id', 'username', 'email'],
+        where: { active: true }, // Solo usuarios activos
+        required: false, // LEFT JOIN para incluir entidades sin usuario
         include: [{
           model: Role,
           attributes: ['name'],
@@ -143,7 +156,7 @@ const EntityService = {
       }]
     });
 
-    if (!entity) {
+    if (!entity || !entity.active) {
       throw new Error('Entidad no encontrada');
     }
 
@@ -192,14 +205,130 @@ const EntityService = {
     return updatedEntity;
   },
 
+  /**
+   * Realiza soft delete de una entidad y su usuario asociado
+   * @param {number} id - ID de la entidad
+   * @returns {Object} Mensaje de confirmación
+   */
   async deleteEntity(id) {
-    const entity = await Entity.findByPk(id);
-    if (!entity) {
-      throw new Error('Entidad no encontrada');
-    }
+    // Iniciar transacción para mantener consistencia
+    const transaction = await sequelize.transaction();
 
-    await entity.destroy();
-    return { message: 'Entidad eliminada exitosamente' };
+    try {
+      // Buscar la entidad con su usuario asociado
+      const entity = await Entity.findByPk(id, {
+        include: [{
+          model: User,
+          as: 'user',
+          attributes: ['id', 'active']
+        }],
+        transaction
+      });
+
+      if (!entity) {
+        await transaction.rollback();
+        throw new Error('Entidad no encontrada');
+      }
+
+      // Verificar si la entidad ya está inactiva
+      if (!entity.active) {
+        await transaction.rollback();
+        throw new Error('La entidad ya está eliminada');
+      }
+
+      // Realizar soft delete de la entidad
+      await Entity.update(
+        { active: false },
+        { 
+          where: { id },
+          transaction
+        }
+      );
+
+      // Si existe un usuario asociado, también realizar soft delete
+       if (entity.user) {
+         await User.update(
+           { active: false },
+           {
+             where: { entityId: id },
+             transaction
+           }
+         );
+       }
+
+      // Confirmar transacción
+      await transaction.commit();
+
+      return { message: 'Entidad eliminada exitosamente (soft delete)' };
+
+    } catch (error) {
+      // Revertir transacción en caso de error
+      await transaction.rollback();
+      throw error;
+    }
+  },
+
+  /**
+   * Reactiva una entidad y su usuario asociado (revertir soft delete)
+   * @param {number} id - ID de la entidad
+   * @returns {Object} Mensaje de confirmación
+   */
+  async reactivateEntity(id) {
+    // Iniciar transacción para mantener consistencia
+    const transaction = await sequelize.transaction();
+
+    try {
+      // Buscar la entidad con su usuario asociado
+      const entity = await Entity.findByPk(id, {
+        include: [{
+          model: User,
+          as: 'user',
+          attributes: ['id', 'active']
+        }],
+        transaction
+      });
+
+      if (!entity) {
+        await transaction.rollback();
+        throw new Error('Entidad no encontrada');
+      }
+
+      // Verificar si la entidad ya está activa
+      if (entity.active) {
+        await transaction.rollback();
+        throw new Error('La entidad ya está activa');
+      }
+
+      // Reactivar la entidad
+      await Entity.update(
+        { active: true },
+        { 
+          where: { id },
+          transaction
+        }
+      );
+
+      // Si existe un usuario asociado, también reactivarlo
+      if (entity.user) {
+        await User.update(
+          { active: true },
+          {
+            where: { entityId: id },
+            transaction
+          }
+        );
+      }
+
+      // Confirmar transacción
+      await transaction.commit();
+
+      return { message: 'Entidad reactivada exitosamente' };
+
+    } catch (error) {
+      // Revertir transacción en caso de error
+      await transaction.rollback();
+      throw error;
+    }
   }
 };
 

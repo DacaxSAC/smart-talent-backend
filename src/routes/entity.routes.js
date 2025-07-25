@@ -121,7 +121,7 @@ const { entityValidation } = require('../middleware/validation.middleware');
  */
 router.post('/', [
     authMiddleware,
-    roleMiddleware(['ADMIN', 'MANAGER']),
+    roleMiddleware(['ADMIN']),
     entityValidation.create
   ],
   EntityController.create
@@ -179,7 +179,7 @@ router.post('/', [
  */
 router.get('/', [
     authMiddleware,
-    roleMiddleware(['ADMIN', 'MANAGER'])
+    roleMiddleware(['ADMIN'])
   ],
   EntityController.getAll
 );
@@ -243,7 +243,7 @@ router.get('/', [
  */
 router.get('/:id', [
     authMiddleware,
-    roleMiddleware(['ADMIN', 'MANAGER'])
+    roleMiddleware(['ADMIN'])
   ],
   EntityController.getById
 );
@@ -308,7 +308,7 @@ router.get('/:id', [
  */
 router.put('/:id', [
     authMiddleware,
-    roleMiddleware(['ADMIN', 'MANAGER']),
+    roleMiddleware(['ADMIN']),
     entityValidation.update
   ],
   EntityController.update
@@ -318,7 +318,8 @@ router.put('/:id', [
  * @swagger
  * /entities/{id}:
  *   delete:
- *     summary: Eliminar una entidad (Admin, Manager)
+ *     summary: Eliminar una entidad (Soft Delete) (Admin, Manager)
+ *     description: Realiza un soft delete de la entidad y su usuario asociado, cambiando el estado 'active' a false en lugar de eliminar físicamente los registros.
  *     tags: [Entities]
  *     security:
  *       - bearerAuth: []
@@ -331,7 +332,17 @@ router.put('/:id', [
  *         description: ID de la entidad
  *     responses:
  *       200:
- *         description: Entidad eliminada exitosamente
+ *         description: Entidad eliminada exitosamente (soft delete)
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "Entidad eliminada exitosamente (soft delete)"
+ *       400:
+ *         description: La entidad ya está eliminada
  *       401:
  *         description: No autenticado
  *       403:
@@ -343,9 +354,46 @@ router.put('/:id', [
  */
 router.delete('/:id', [
     authMiddleware,
-    roleMiddleware(['ADMIN', 'MANAGER'])
+    roleMiddleware(['ADMIN'])
   ],
   EntityController.delete
 );
+
+/**
+ * @swagger
+ * /entities/{id}/reactivate:
+ *   put:
+ *     summary: Reactivar una entidad y su usuario asociado (Admin, Manager)
+ *     tags: [Entities]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: ID de la entidad
+ *     responses:
+ *       200:
+ *         description: Entidad reactivada exitosamente
+ *       400:
+ *         description: La entidad ya está activa
+ *       401:
+ *         description: No autenticado
+ *       403:
+ *         description: No autorizado (requiere rol ADMIN o MANAGER)
+ *       404:
+ *         description: Entidad no encontrada
+ *       500:
+ *         description: Error del servidor
+ */
+router.put('/:id/reactivate', [
+    authMiddleware,
+    roleMiddleware(['ADMIN'])
+  ],
+  EntityController.reactivate
+);
+
 
 module.exports = router;

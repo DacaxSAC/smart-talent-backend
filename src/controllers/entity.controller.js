@@ -62,17 +62,42 @@ const EntityController = {
     }
   },
 
-  // Eliminar una entidad
+  // Eliminar una entidad (soft delete)
   delete: async (req, res) => {
     try {
-      await EntityService.deleteEntity(req.params.id);
-      res.status(200).json({ message: 'Entidad eliminada exitosamente' });
+      const result = await EntityService.deleteEntity(req.params.id);
+      res.status(200).json(result);
     } catch (error) {
       console.error('Error al eliminar entidad:', error);
-      const statusCode = error.message === 'Entidad no encontrada' ? 404 : 500;
+      let statusCode = 500;
+      
+      if (error.message === 'Entidad no encontrada') {
+        statusCode = 404;
+      } else if (error.message === 'La entidad ya está eliminada') {
+        statusCode = 400;
+      }
+      
+      res.status(statusCode).json({ message: error.message });
+    }
+  },
+
+  // Reactivar una entidad y su usuario asociado
+  reactivate: async (req, res) => {
+    try {
+      const result = await EntityService.reactivateEntity(req.params.id);
+      res.status(200).json(result);
+    } catch (error) {
+      console.error('Error al reactivar entidad:', error);
+      let statusCode = 500;
+      
+      if (error.message === 'Entidad no encontrada') {
+        statusCode = 404;
+      }
+      
       res.status(statusCode).json({ message: error.message });
     }
   }
+
 };
 
 module.exports = { EntityController };
