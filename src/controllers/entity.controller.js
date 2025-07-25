@@ -79,7 +79,25 @@ const EntityController = {
       
       res.status(statusCode).json({ message: error.message });
     }
+  },
+
+  // Reactivar una entidad y su usuario asociado
+  reactivate: async (req, res) => {
+    try {
+      const result = await EntityService.reactivateEntity(req.params.id);
+      res.status(200).json(result);
+    } catch (error) {
+      console.error('Error al reactivar entidad:', error);
+      let statusCode = 500;
+      
+      if (error.message === 'Entidad no encontrada') {
+        statusCode = 404;
+      }
+      
+      res.status(statusCode).json({ message: error.message });
+    }
   }
+
 };
 
 module.exports = { EntityController };

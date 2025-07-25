@@ -121,7 +121,7 @@ const { entityValidation } = require('../middleware/validation.middleware');
  */
 router.post('/', [
     authMiddleware,
-    roleMiddleware(['ADMIN', 'MANAGER']),
+    roleMiddleware(['ADMIN']),
     entityValidation.create
   ],
   EntityController.create
@@ -179,7 +179,7 @@ router.post('/', [
  */
 router.get('/', [
     authMiddleware,
-    roleMiddleware(['ADMIN', 'MANAGER'])
+    roleMiddleware(['ADMIN'])
   ],
   EntityController.getAll
 );
@@ -243,7 +243,7 @@ router.get('/', [
  */
 router.get('/:id', [
     authMiddleware,
-    roleMiddleware(['ADMIN', 'MANAGER'])
+    roleMiddleware(['ADMIN'])
   ],
   EntityController.getById
 );
@@ -308,7 +308,7 @@ router.get('/:id', [
  */
 router.put('/:id', [
     authMiddleware,
-    roleMiddleware(['ADMIN', 'MANAGER']),
+    roleMiddleware(['ADMIN']),
     entityValidation.update
   ],
   EntityController.update
@@ -354,9 +354,46 @@ router.put('/:id', [
  */
 router.delete('/:id', [
     authMiddleware,
-    roleMiddleware(['ADMIN', 'MANAGER'])
+    roleMiddleware(['ADMIN'])
   ],
   EntityController.delete
 );
+
+/**
+ * @swagger
+ * /entities/{id}/reactivate:
+ *   put:
+ *     summary: Reactivar una entidad y su usuario asociado (Admin, Manager)
+ *     tags: [Entities]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: ID de la entidad
+ *     responses:
+ *       200:
+ *         description: Entidad reactivada exitosamente
+ *       400:
+ *         description: La entidad ya está activa
+ *       401:
+ *         description: No autenticado
+ *       403:
+ *         description: No autorizado (requiere rol ADMIN o MANAGER)
+ *       404:
+ *         description: Entidad no encontrada
+ *       500:
+ *         description: Error del servidor
+ */
+router.put('/:id/reactivate', [
+    authMiddleware,
+    roleMiddleware(['ADMIN'])
+  ],
+  EntityController.reactivate
+);
+
 
 module.exports = router;
