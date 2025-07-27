@@ -126,6 +126,55 @@ router.post('/', [
  *     responses:
  *       200:
  *         description: Lista de personas obtenida exitosamente
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "Personas obtenidas exitosamente"
+ *                 people:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       id:
+ *                         type: integer
+ *                       dni:
+ *                         type: string
+ *                       fullname:
+ *                         type: string
+ *                       phone:
+ *                         type: string
+ *                       status:
+ *                         type: string
+ *                       observations:
+ *                         type: string
+ *                       Users:
+                         type: array
+                         description: Reclutadores asignados a esta persona
+                         items:
+                           type: object
+                           properties:
+                             id:
+                               type: integer
+                             username:
+                               type: string
+                             email:
+                               type: string
+                             Roles:
+                               type: array
+                               items:
+                                 type: object
+                                 properties:
+                                   name:
+                                     type: string
+                                     example: "RECRUITER"
+ *                       documents:
+ *                         type: array
+ *                         items:
+ *                           type: object
  *       401:
  *         description: No autenticado
  *       404:
@@ -163,6 +212,63 @@ router.get('/entity/:entityId/people', [
  *     responses:
  *       200:
  *         description: Lista de personas obtenida exitosamente
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "Personas obtenidas exitosamente"
+ *                 people:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       id:
+ *                         type: integer
+ *                       dni:
+ *                         type: string
+ *                       fullname:
+ *                         type: string
+ *                       phone:
+ *                         type: string
+ *                       status:
+ *                         type: string
+ *                       observations:
+ *                         type: string
+ *                       owner:
+ *                         type: string
+ *                         description: Nombre del propietario de la entidad
+ *                       Users:
+                         type: array
+                         description: Reclutadores asignados a esta persona
+                         items:
+                           type: object
+                           properties:
+                             id:
+                               type: integer
+                             username:
+                               type: string
+                             email:
+                               type: string
+                             Roles:
+                               type: array
+                               items:
+                                 type: object
+                                 properties:
+                                   name:
+                                     type: string
+                                     example: "RECRUITER"
+ *                       request:
+ *                         type: object
+ *                         properties:
+ *                           entity:
+ *                             type: object
+ *                       documents:
+ *                         type: array
+ *                         items:
+ *                           type: object
  *       401:
  *         description: No autenticado
  *       403:

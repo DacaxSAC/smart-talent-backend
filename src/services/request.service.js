@@ -1,4 +1,4 @@
-const { Request, Person, Document, Resource, Entity, ResourceType } = require("../models");
+const { Request, Person, Document, Resource, Entity, ResourceType, User, Role } = require("../models");
 const { sequelize } = require("../config/database");
 const { Op } = require("sequelize");
 
@@ -128,6 +128,20 @@ const RequestService = {
                 },
               ],
             },
+            {
+              model: User,
+              attributes: ["id", "username", "email"],
+              through: { attributes: [] },
+              required: false,
+              include: [
+                {
+                  model: Role,
+                  attributes: ["name"],
+                  where: { name: "RECRUITER" },
+                  through: { attributes: [] }
+                }
+              ]
+            },
           ],
         },
       ],
@@ -200,6 +214,20 @@ const RequestService = {
               ]
             },
           ],
+        },
+        {
+          model: User,
+          attributes: ["id", "username", "email"],
+          through: { attributes: [] },
+          required: false,
+          include: [
+            {
+              model: Role,
+              attributes: ["name"],
+              where: { name: "RECRUITER" },
+              through: { attributes: [] }
+            }
+          ]
         },
       ],
       attributes: [
