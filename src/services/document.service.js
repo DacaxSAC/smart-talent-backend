@@ -21,17 +21,28 @@ const DocumentService = {
           continue;
         }
         
-        if (result !== undefined) {
+        let hasChanges = false;
+        
+        // Solo actualizar si result tiene contenido real
+        if (result !== undefined && result !== null && result.trim() !== '') {
           document.result = result;
+          hasChanges = true;
         }
         
-        if (filename !== undefined) {
+        // Solo actualizar si filename tiene contenido real
+        if (filename !== undefined && filename !== null && filename.trim() !== '') {
           document.filename = filename;
           document.status = 'Realizado';
+          hasChanges = true;
         }
         
-        await document.save({ transaction: t });
-        results.push({ id, status: 'updated' });
+        // Solo guardar si hubo cambios reales
+        if (hasChanges) {
+          await document.save({ transaction: t });
+          results.push({ id, status: 'updated' });
+        } else {
+          results.push({ id, status: 'no changes' });
+        }
       }
 
       await t.commit();
