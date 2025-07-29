@@ -51,7 +51,7 @@ const UserService = {
       }]
     });
 
-    await sendEmailCreateUser(user.email, userPassword);
+    //await sendEmailCreateUser(user.email, userPassword);
 
     return {
       message: 'Usuario creado exitosamente',
