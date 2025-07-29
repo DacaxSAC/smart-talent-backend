@@ -129,14 +129,14 @@ const initDatabase = async () => {
     // Crear tipos de recursos
     const resourceTypes = [
       {
-        name: 'Documento de Identidad (ejm: DNI)',
+        name: 'Documento de Identidad (DNI, CE, etc.)',
         description: 'Documento original escaneado',
         isRequired: true,
         maxFileSize: 500000,
         allowedFileTypes: ['application/pdf', 'image/jpeg', 'image/png']
       },
       {
-        name: 'Observaciones',
+        name: 'Comentarios adicionales',
         description: 'Cualquier observación adicional',
         isRequired: false,
         maxFileSize: 0,
