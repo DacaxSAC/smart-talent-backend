@@ -4,7 +4,7 @@ require('dotenv').config();
 
 const initDatabase = async () => {
   try {
-    await sequelize.sync({ force: true });
+    await sequelize.sync({ alter: true });
     console.log('Conexión a PostgreSQL establecida para inicialización');
 
     // Crear roles predeterminados
