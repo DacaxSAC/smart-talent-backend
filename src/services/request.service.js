@@ -255,6 +255,98 @@ const RequestService = {
     };
   },
 
+  /**
+   * Obtiene una persona específica por ID con todas sus relaciones
+   * @param {number} personId - ID de la persona
+   * @returns {Object} Persona con sus relaciones
+   */
+  async getPersonById(personId) {
+    const person = await Person.findByPk(personId, {
+      include: [
+        {
+          model: Request,
+          as: "request",
+          attributes: [],
+          include: [
+            {
+              model: Entity,
+              as: "entity",
+              attributes: []
+            },
+          ],
+        },
+        {
+          model: Document,
+          as: "documents",
+          include: [
+            {
+              model: Resource,
+              as: "resources",
+              attributes: [
+                "id",
+                "name",
+                "value",
+                "documentId",
+                [sequelize.literal('"documents->resources->resourceType"."allowedFileTypes"'), 'allowedFileTypes']
+              ],
+              include: [
+                {
+                  model: ResourceType,
+                  as: "resourceType",
+                  attributes: []
+                }
+              ]
+            },
+          ],
+        },
+        {
+          model: User,
+          attributes: ["id", "username", "email"],
+          through: { attributes: [] },
+          required: false,
+          include: [
+            {
+              model: Role,
+              attributes: ["name"],
+              where: { name: "RECRUITER" },
+              through: { attributes: [] }
+            }
+          ]
+        },
+      ],
+      attributes: [
+        "id",
+        "dni",
+        "fullname",
+        "phone",
+        "status",
+        "observations",
+        [
+          sequelize.literal(`
+            CASE 
+              WHEN "request->entity"."type" = 'JURIDICA' THEN "request->entity"."businessName"
+              ELSE CONCAT("request->entity"."firstName", ' ', "request->entity"."paternalSurname", ' ', "request->entity"."maternalSurname")
+            END
+          `),
+          "owner",
+        ]
+      ],
+    });
+
+    if (!person) {
+      throw new Error('Persona no encontrada');
+    }
+
+    // Remover el objeto request de la respuesta pero mantener el campo owner calculado
+    const personData = person.toJSON();
+    delete personData.request;
+
+    return {
+      message: "Persona obtenida exitosamente",
+      person: personData,
+    };
+  },
+
   async assignRecruiter(recruiterId, personId) {
     const t = await sequelize.transaction();
 

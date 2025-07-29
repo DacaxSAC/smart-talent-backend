@@ -283,6 +283,95 @@ router.get('/people', [
 
 /**
  * @swagger
+ * /requests/person/{personId}:
+ *   get:
+ *     summary: Obtener una persona específica por ID con todas sus relaciones
+ *     tags: [Requests]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: personId
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: ID de la persona
+ *     responses:
+ *       200:
+ *         description: Persona obtenida exitosamente
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "Persona obtenida exitosamente"
+ *                 person:
+ *                   type: object
+ *                   properties:
+ *                     id:
+ *                       type: integer
+ *                     dni:
+ *                       type: string
+ *                     fullname:
+ *                       type: string
+ *                     phone:
+ *                       type: string
+ *                     status:
+ *                       type: string
+ *                     observations:
+ *                       type: string
+ *                     owner:
+ *                       type: string
+ *                       description: Nombre del propietario de la entidad
+ *                     Users:
+ *                       type: array
+ *                       description: Reclutadores asignados a esta persona
+ *                       items:
+ *                         type: object
+ *                         properties:
+ *                           id:
+ *                             type: integer
+ *                           username:
+ *                             type: string
+ *                           email:
+ *                             type: string
+ *                           Roles:
+ *                             type: array
+ *                             items:
+ *                               type: object
+ *                               properties:
+ *                                 name:
+ *                                   type: string
+ *                                   example: "RECRUITER"
+ *                     request:
+ *                       type: object
+ *                       properties:
+ *                         entity:
+ *                           type: object
+ *                     documents:
+ *                       type: array
+ *                       items:
+ *                         type: object
+ *       400:
+ *         description: ID de persona inválido
+ *       401:
+ *         description: No autenticado
+ *       403:
+ *         description: No autorizado
+ *       404:
+ *         description: Persona no encontrada
+ *       500:
+ *         description: Error del servidor
+ */
+router.get('/person/:personId', [
+  authMiddleware,
+  roleMiddleware(['ADMIN', 'RECRUITER', 'USER'])
+], RequestController.getPersonById);
+
+/**
+ * @swagger
  * /requests/person/update-status:
  *   patch:
  *     summary: Actualizar solo el estado de una persona específica

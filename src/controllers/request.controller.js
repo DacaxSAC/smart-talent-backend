@@ -60,6 +60,29 @@ const RequestController = {
     }
   },
 
+  // Obtener una persona específica por ID
+  getPersonById: async (req, res) => {
+    try {
+      const { personId } = req.params;
+      
+      if (!personId || isNaN(personId)) {
+        return res.status(400).json({ 
+          message: 'ID de persona inválido' 
+        });
+      }
+      
+      const result = await RequestService.getPersonById(parseInt(personId));
+      res.status(200).json(result);
+    } catch (error) {
+      console.error('Error al obtener persona:', error);
+      const statusCode = error.message === 'Persona no encontrada' ? 404 : 500;
+      res.status(statusCode).json({ 
+        message: error.message === 'Persona no encontrada' ? error.message : 'Error al obtener la persona', 
+        error: error.message 
+      });
+    }
+  },
+
  // Asignar recruiter y mover a IN_PROGRESS
  assignRecruiter: async (req, res) => {
    try {
