@@ -145,19 +145,66 @@ const RequestController = {
     try {
       const { personId, status } = req.body;
 
-      if (!personId || !status) {
+      if (!personId || isNaN(personId)) {
         return res.status(400).json({
-          message: 'personId y status son requeridos'
+          message: 'ID de persona inválido'
         });
       }
 
-      const result = await RequestService.updatePersonStatus(personId, status);
+      if (!status) {
+        return res.status(400).json({
+          message: 'El estado es requerido'
+        });
+      }
+
+      const result = await RequestService.updatePersonStatus(parseInt(personId), status);
       res.status(200).json(result);
     } catch (error) {
-      if (error.message === 'Persona no encontrada') {
-        return res.status(404).json({ message: error.message });
+      console.error('Error al actualizar estado de persona:', error);
+      const statusCode = error.message === 'Persona no encontrada' ? 404 : 500;
+      res.status(statusCode).json({ 
+        message: error.message === 'Persona no encontrada' ? error.message : 'Error al actualizar el estado', 
+        error: error.message 
+      });
+    }
+  },
+
+  /**
+   * Elimina una solicitud completa
+   * Solo permite eliminar solicitudes en estado PENDING
+   */
+  deleteRequest: async (req, res) => {
+    try {
+      const { requestId } = req.params;
+
+      // Validar que requestId sea un número
+      if (!requestId || isNaN(parseInt(requestId))) {
+        return res.status(400).json({
+          message: 'ID de solicitud inválido'
+        });
       }
-      res.status(500).json({ message: 'Error interno del servidor', error: error.message });
+
+      const result = await RequestService.deleteRequest(parseInt(requestId));
+      res.status(200).json(result);
+    } catch (error) {
+      console.error('Error al eliminar solicitud:', error);
+      
+      // Manejar diferentes tipos de errores
+      let statusCode = 500;
+      let message = 'Error al eliminar la solicitud';
+      
+      if (error.message === 'Solicitud no encontrada') {
+        statusCode = 404;
+        message = error.message;
+      } else if (error.message.includes('Solo se pueden eliminar solicitudes en estado PENDING')) {
+        statusCode = 400;
+        message = error.message;
+      }
+      
+      res.status(statusCode).json({ 
+        message, 
+        error: error.message 
+      });
     }
   }
 };

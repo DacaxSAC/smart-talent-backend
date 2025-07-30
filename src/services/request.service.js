@@ -1,4 +1,13 @@
-const { Request, Person, Document, Resource, Entity, ResourceType, User, Role } = require("../models");
+const {
+  Request,
+  Person,
+  Document,
+  Resource,
+  Entity,
+  ResourceType,
+  User,
+  Role,
+} = require("../models");
 const { sequelize } = require("../config/database");
 const { Op } = require("sequelize");
 
@@ -42,22 +51,28 @@ const RequestService = {
           // Crear documentos para esta persona
           const createdDocuments = await Promise.all(
             (personData.documents || []).map(async (docData) => {
-              const document = await Document.create({
-                documentTypeId: docData.documentTypeId,
-                name: docData.name,
-                status: 'Pendiente',
-                personId: person.id
-              }, { transaction: t });
+              const document = await Document.create(
+                {
+                  documentTypeId: docData.documentTypeId,
+                  name: docData.name,
+                  status: "Pendiente",
+                  personId: person.id,
+                },
+                { transaction: t }
+              );
 
               // Crear recursos para este documento
               const createdResources = await Promise.all(
                 (docData.resources || []).map(async (resourceData) => {
-                  return await Resource.create({
-                    resourceTypeId: resourceData.resourceTypeId,
-                    documentId: document.id,
-                    name: resourceData.name,
-                    value: resourceData.value
-                  }, { transaction: t });
+                  return await Resource.create(
+                    {
+                      resourceTypeId: resourceData.resourceTypeId,
+                      documentId: document.id,
+                      name: resourceData.name,
+                      value: resourceData.value,
+                    },
+                    { transaction: t }
+                  );
                 })
               );
               return {
@@ -116,15 +131,20 @@ const RequestService = {
                     "name",
                     "value",
                     "documentId",
-                    [sequelize.literal('"persons->documents->resources->resourceType"."allowedFileTypes"'), 'allowedFileTypes']
+                    [
+                      sequelize.literal(
+                        '"persons->documents->resources->resourceType"."allowedFileTypes"'
+                      ),
+                      "allowedFileTypes",
+                    ],
                   ],
                   include: [
                     {
                       model: ResourceType,
                       as: "resourceType",
-                      attributes: []
-                    }
-                  ]
+                      attributes: [],
+                    },
+                  ],
                 },
               ],
             },
@@ -138,9 +158,9 @@ const RequestService = {
                   model: Role,
                   attributes: ["name"],
                   where: { name: "RECRUITER" },
-                  through: { attributes: [] }
-                }
-              ]
+                  through: { attributes: [] },
+                },
+              ],
             },
           ],
         },
@@ -203,15 +223,20 @@ const RequestService = {
                 "name",
                 "value",
                 "documentId",
-                [sequelize.literal('"documents->resources->resourceType"."allowedFileTypes"'), 'allowedFileTypes']
+                [
+                  sequelize.literal(
+                    '"documents->resources->resourceType"."allowedFileTypes"'
+                  ),
+                  "allowedFileTypes",
+                ],
               ],
               include: [
                 {
                   model: ResourceType,
                   as: "resourceType",
-                  attributes: []
-                }
-              ]
+                  attributes: [],
+                },
+              ],
             },
           ],
         },
@@ -225,9 +250,9 @@ const RequestService = {
               model: Role,
               attributes: ["name"],
               where: { name: "RECRUITER" },
-              through: { attributes: [] }
-            }
-          ]
+              through: { attributes: [] },
+            },
+          ],
         },
       ],
       attributes: [
@@ -245,7 +270,7 @@ const RequestService = {
             END
           `),
           "owner",
-        ]
+        ],
       ],
     });
 
@@ -271,7 +296,7 @@ const RequestService = {
             {
               model: Entity,
               as: "entity",
-              attributes: []
+              attributes: [],
             },
           ],
         },
@@ -287,15 +312,20 @@ const RequestService = {
                 "name",
                 "value",
                 "documentId",
-                [sequelize.literal('"documents->resources->resourceType"."allowedFileTypes"'), 'allowedFileTypes']
+                [
+                  sequelize.literal(
+                    '"documents->resources->resourceType"."allowedFileTypes"'
+                  ),
+                  "allowedFileTypes",
+                ],
               ],
               include: [
                 {
                   model: ResourceType,
                   as: "resourceType",
-                  attributes: []
-                }
-              ]
+                  attributes: [],
+                },
+              ],
             },
           ],
         },
@@ -309,9 +339,9 @@ const RequestService = {
               model: Role,
               attributes: ["name"],
               where: { name: "RECRUITER" },
-              through: { attributes: [] }
-            }
-          ]
+              through: { attributes: [] },
+            },
+          ],
         },
       ],
       attributes: [
@@ -329,12 +359,12 @@ const RequestService = {
             END
           `),
           "owner",
-        ]
+        ],
       ],
     });
 
     if (!person) {
-      throw new Error('Persona no encontrada');
+      throw new Error("Persona no encontrada");
     }
 
     // Remover el objeto request de la respuesta pero mantener el campo owner calculado
@@ -352,41 +382,45 @@ const RequestService = {
 
     try {
       // Verificar que la persona existe y obtener su solicitud
-      const { User, Role, Person } = require('../models');
+      const { User, Role, Person } = require("../models");
       const person = await Person.findByPk(personId, {
-        include: [{
-          model: Request,
-          as: 'request'
-        }],
-        transaction: t
+        include: [
+          {
+            model: Request,
+            as: "request",
+          },
+        ],
+        transaction: t,
       });
 
       if (!person) {
         await t.rollback();
-        throw new Error('Persona no encontrada');
+        throw new Error("Persona no encontrada");
       }
 
       // Verificar que el usuario existe y es un recruiter
       const recruiter = await User.findByPk(recruiterId, {
-        include: [{
-          model: Role,
-          through: { attributes: [] },
-          where: { name: 'RECRUITER' }
-        }],
-        transaction: t
+        include: [
+          {
+            model: Role,
+            through: { attributes: [] },
+            where: { name: "RECRUITER" },
+          },
+        ],
+        transaction: t,
       });
 
       if (!recruiter) {
         await t.rollback();
-        throw new Error('Usuario no encontrado o no es un recruiter');
+        throw new Error("Usuario no encontrado o no es un recruiter");
       }
 
       // Actualizar el estado de la solicitud a IN_PROGRESS
       await Person.update(
-        { status: 'IN_PROGRESS' },
+        { status: "IN_PROGRESS" },
         {
           where: { id: person.id },
-          transaction: t
+          transaction: t,
         }
       );
 
@@ -396,12 +430,12 @@ const RequestService = {
       await t.commit();
 
       return {
-        message: 'Persona asignada al reclutador',
+        message: "Persona asignada al reclutador",
         requestId: person.request.id,
         personId,
         recruiterId,
         recruiterName: recruiter.name,
-        newStatus: 'IN_PROGRESS'
+        newStatus: "IN_PROGRESS",
       };
     } catch (error) {
       await t.rollback();
@@ -415,43 +449,45 @@ const RequestService = {
     try {
       // Verificar que la persona existe
       const person = await Person.findByPk(personId, {
-        include: [{
-          model: Request,
-          as: 'request'
-        }],
-        transaction: t
+        include: [
+          {
+            model: Request,
+            as: "request",
+          },
+        ],
+        transaction: t,
       });
 
       if (!person) {
         await t.rollback();
-        throw new Error('Persona no encontrada');
+        throw new Error("Persona no encontrada");
       }
 
       // Actualizar observaciones y estado de la persona específica
       await Person.update(
         {
           observations: observations,
-          status: 'OBSERVED'
+          status: "OBSERVED",
         },
         {
           where: { id: personId },
-          transaction: t
+          transaction: t,
         }
       );
 
       await t.commit();
 
       return {
-        message: 'Observaciones agregadas exitosamente a la persona',
+        message: "Observaciones agregadas exitosamente a la persona",
         personId,
         observations,
         personUpdated: {
           id: person.id,
           fullname: person.fullname,
           observations: observations,
-          status: 'OBSERVED'
+          status: "OBSERVED",
         },
-        requestId: person.request ? person.request.id : null
+        requestId: person.request ? person.request.id : null,
       };
     } catch (error) {
       await t.rollback();
@@ -460,22 +496,25 @@ const RequestService = {
   },
 
   async updatePersonStatus(personId, newStatus) {
+    // Primero verificar que la persona existe sin transacción
+    const person = await Person.findByPk(personId);
+    console.log('Person found:', person);
+    console.log('PersonId received:', personId, 'Type:', typeof personId);
+
+    if (!person) {
+      throw new Error("Persona no encontrada");
+    }
+
+    // Ahora usar transacción para la actualización
     const t = await sequelize.transaction();
 
     try {
-      // Verificar que la persona existe
-      const person = await Person.findByPk(personId, { transaction: t });
-      if (!person) {
-        await t.rollback();
-        throw new Error('Persona no encontrada');
-      }
-
       // Actualizar solo el estado de la persona
       await Person.update(
         { status: newStatus },
         {
           where: { id: personId },
-          transaction: t
+          transaction: t,
         }
       );
 
@@ -488,15 +527,147 @@ const RequestService = {
         personUpdated: {
           id: person.id,
           fullname: person.fullname,
-          status: newStatus
+          status: newStatus,
+        },
+      };
+    } catch (error) {
+      // Solo hacer rollback si la transacción no ha sido finalizada
+      if (!t.finished) {
+        await t.rollback();
+      }
+      throw error;
+    }
+  },
+
+  /**
+   * Elimina una solicitud y todas sus relaciones asociadas
+   * Solo permite eliminar solicitudes en estado PENDING
+   * @param {number} requestId - ID de la solicitud a eliminar
+   * @returns {Object} Resultado de la eliminación
+   */
+  async deleteRequest(requestId) {
+    const t = await sequelize.transaction();
+
+    try {
+      // Verificar que la solicitud existe
+      const request = await Request.findByPk(requestId, {
+        include: [
+          {
+            model: Person,
+            as: "persons",
+            include: [
+              {
+                model: Document,
+                as: "documents",
+                include: [
+                  {
+                    model: Resource,
+                    as: "resources",
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+        transaction: t,
+      });
+
+      if (!request) {
+        await t.rollback();
+        throw new Error("Solicitud no encontrada");
+      }
+
+      // Verificar que el estado sea PENDING
+      if (request.status !== "PENDING") {
+        await t.rollback();
+        throw new Error(
+          `No se puede eliminar la solicitud. Estado actual: ${request.status}. Solo se pueden eliminar solicitudes en estado PENDING.`
+        );
+      }
+
+      // Contar elementos que se van a eliminar para el reporte
+      const personsCount = request.persons ? request.persons.length : 0;
+      const documentsCount = request.persons
+        ? request.persons.reduce(
+            (acc, person) =>
+              acc + (person.documents ? person.documents.length : 0),
+            0
+          )
+        : 0;
+      const resourcesCount = request.persons
+        ? request.persons.reduce(
+            (acc, person) =>
+              acc +
+              (person.documents
+                ? person.documents.reduce(
+                    (docAcc, doc) =>
+                      docAcc + (doc.resources ? doc.resources.length : 0),
+                    0
+                  )
+                : 0),
+            0
+          )
+        : 0;
+
+      // Eliminar en orden: Resources -> Documents -> Persons -> Request
+      // Las eliminaciones en cascada deberían manejar esto automáticamente,
+      // pero lo hacemos explícitamente para mayor control
+
+      for (const person of request.persons || []) {
+        for (const document of person.documents || []) {
+          // Eliminar recursos del documento
+          await Resource.destroy({
+            where: { documentId: document.id },
+            transaction: t,
+          });
         }
+
+        // Eliminar documentos de la persona
+        await Document.destroy({
+          where: { personId: person.id },
+          transaction: t,
+        });
+
+        // Eliminar relaciones User-Person si existen
+        await sequelize.query(
+          'DELETE FROM "UserPeople" WHERE "PersonId" = :personId',
+          {
+            replacements: { personId: person.id },
+            transaction: t,
+          }
+        );
+      }
+
+      // Eliminar personas
+      await Person.destroy({
+        where: { requestId: request.id },
+        transaction: t,
+      });
+
+      // Finalmente eliminar la solicitud
+      await Request.destroy({
+        where: { id: requestId },
+        transaction: t,
+      });
+
+      await t.commit();
+
+      return {
+        message: "Solicitud eliminada exitosamente",
+        deletedRequest: {
+          id: request.id,
+          entityId: request.entityId,
+          status: request.status,
+          personsDeleted: personsCount,
+          documentsDeleted: documentsCount,
+          resourcesDeleted: resourcesCount,
+        },
       };
     } catch (error) {
       await t.rollback();
       throw error;
     }
-  }
-
+  },
 };
 
 module.exports = RequestService;

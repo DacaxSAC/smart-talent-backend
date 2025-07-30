@@ -152,25 +152,25 @@ router.post('/', [
  *                       observations:
  *                         type: string
  *                       Users:
-                         type: array
-                         description: Reclutadores asignados a esta persona
-                         items:
-                           type: object
-                           properties:
-                             id:
-                               type: integer
-                             username:
-                               type: string
-                             email:
-                               type: string
-                             Roles:
-                               type: array
-                               items:
-                                 type: object
-                                 properties:
-                                   name:
-                                     type: string
-                                     example: "RECRUITER"
+ *                         type: array
+ *                         description: Reclutadores asignados a esta persona
+ *                         items:
+ *                           type: object
+ *                           properties:
+ *                             id:
+ *                               type: integer
+ *                             username:
+ *                               type: string
+ *                             email:
+ *                               type: string
+ *                             Roles:
+ *                               type: array
+ *                               items:
+ *                                 type: object
+ *                                 properties:
+ *                                   name:
+ *                                     type: string
+ *                                     example: "RECRUITER"
  *                       documents:
  *                         type: array
  *                         items:
@@ -241,25 +241,25 @@ router.get('/entity/:entityId/people', [
  *                         type: string
  *                         description: Nombre del propietario de la entidad
  *                       Users:
-                         type: array
-                         description: Reclutadores asignados a esta persona
-                         items:
-                           type: object
-                           properties:
-                             id:
-                               type: integer
-                             username:
-                               type: string
-                             email:
-                               type: string
-                             Roles:
-                               type: array
-                               items:
-                                 type: object
-                                 properties:
-                                   name:
-                                     type: string
-                                     example: "RECRUITER"
+ *                         type: array
+ *                         description: Reclutadores asignados a esta persona
+ *                         items:
+ *                           type: object
+ *                           properties:
+ *                             id:
+ *                               type: integer
+ *                             username:
+ *                               type: string
+ *                             email:
+ *                               type: string
+ *                             Roles:
+ *                               type: array
+ *                               items:
+ *                                 type: object
+ *                                 properties:
+ *                                   name:
+ *                                     type: string
+ *                                     example: "RECRUITER"
  *                       request:
  *                         type: object
  *                         properties:
@@ -548,5 +548,115 @@ router.patch('/give-observations', [
   authMiddleware,
   roleMiddleware(['RECRUITER'])
 ], RequestController.giveObservations);
+
+/**
+ * @swagger
+ * /requests/{requestId}:
+ *   delete:
+ *     summary: Eliminar una solicitud completa
+ *     description: Elimina una solicitud y todas sus relaciones asociadas (personas, documentos, recursos). Solo permite eliminar solicitudes en estado PENDING.
+ *     tags: [Requests]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: requestId
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: ID de la solicitud a eliminar
+ *     responses:
+ *       200:
+ *         description: Solicitud eliminada exitosamente
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "Solicitud eliminada exitosamente"
+ *                 deletedRequest:
+ *                   type: object
+ *                   properties:
+ *                     id:
+ *                       type: integer
+ *                       example: 1
+ *                     entityId:
+ *                       type: integer
+ *                       example: 5
+ *                     status:
+ *                       type: string
+ *                       example: "PENDING"
+ *                     personsDeleted:
+ *                       type: integer
+ *                       example: 3
+ *                     documentsDeleted:
+ *                       type: integer
+ *                       example: 15
+ *                     resourcesDeleted:
+ *                       type: integer
+ *                       example: 45
+ *       400:
+ *         description: Error de validación o estado no permitido
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "No se puede eliminar la solicitud. Estado actual: IN_PROGRESS. Solo se pueden eliminar solicitudes en estado PENDING."
+ *                 error:
+ *                   type: string
+ *       401:
+ *         description: No autorizado
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "Token no válido"
+ *       403:
+ *         description: Acceso denegado
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "Acceso denegado"
+ *       404:
+ *         description: Solicitud no encontrada
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "Solicitud no encontrada"
+ *                 error:
+ *                   type: string
+ *       500:
+ *         description: Error interno del servidor
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "Error al eliminar la solicitud"
+ *                 error:
+ *                   type: string
+ */
+router.delete('/:requestId', [
+  authMiddleware,
+  roleMiddleware(['ADMIN', 'USER'])
+], RequestController.deleteRequest);
 
 module.exports = router;
