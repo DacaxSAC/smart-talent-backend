@@ -42,14 +42,24 @@ const RequestController = {
   // Obtener todas las personas con su entidad
   getAllPeople: async (req, res) => {
     try {
-      let { status } = req.query;
+      let { status, recruiterId } = req.query;
       
       // Si status es un string con comas, convertir a array
       if (status && typeof status === 'string' && status.includes(',')) {
         status = status.split(',').map(s => s.trim());
       }
       
-      const result = await RequestService.getAllPeopleWithEntities(status);
+      // Convertir recruiterId a número si existe
+      if (recruiterId) {
+        recruiterId = parseInt(recruiterId);
+        if (isNaN(recruiterId)) {
+          return res.status(400).json({ 
+            message: 'ID de reclutador inválido' 
+          });
+        }
+      }
+      
+      const result = await RequestService.getAllPeopleWithEntities(status, recruiterId);
       res.status(200).json(result);
     } catch (error) {
       console.error('Error al obtener personas:', error);

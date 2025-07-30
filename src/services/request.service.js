@@ -187,7 +187,7 @@ const RequestService = {
     };
   },
 
-  async getAllPeopleWithEntities(status = null) {
+  async getAllPeopleWithEntities(status = null, recruiterId = null) {
     // Construir condiciones de filtro
     const whereConditions = {};
     if (status) {
@@ -198,7 +198,28 @@ const RequestService = {
       whereConditions.status =
         statusArray.length === 1 ? statusArray[0] : { [Op.in]: statusArray };
     }
-
+  
+    // Configurar include para User (reclutador)
+    const userInclude = {
+      model: User,
+      attributes: ["id", "username", "email"],
+      through: { attributes: [] },
+      required: recruiterId ? true : false, // Si se filtra por reclutador, hacer required
+      include: [
+        {
+          model: Role,
+          attributes: ["name"],
+          where: { name: "RECRUITER" },
+          through: { attributes: [] },
+        },
+      ],
+    };
+  
+    // Si se especifica recruiterId, agregar filtro
+    if (recruiterId) {
+      userInclude.where = { id: recruiterId };
+    }
+  
     // Obtener todas las personas con sus relaciones
     const people = await Person.findAll({
       where: whereConditions,
@@ -216,10 +237,12 @@ const RequestService = {
         {
           model: Document,
           as: "documents",
+          order: [['id', 'ASC']], // Agregar ordenamiento por id
           include: [
             {
               model: Resource,
               as: "resources",
+              order: [['id', 'ASC']], // Agregar ordenamiento por id
               attributes: [
                 "id",
                 "name",
@@ -242,20 +265,7 @@ const RequestService = {
             },
           ],
         },
-        {
-          model: User,
-          attributes: ["id", "username", "email"],
-          through: { attributes: [] },
-          required: false,
-          include: [
-            {
-              model: Role,
-              attributes: ["name"],
-              where: { name: "RECRUITER" },
-              through: { attributes: [] },
-            },
-          ],
-        },
+        userInclude,
       ],
       order: [['id', 'ASC']], // Agregar ordenamiento principal por id
       attributes: [
@@ -276,7 +286,7 @@ const RequestService = {
         ],
       ],
     });
-
+  
     return {
       message: "Personas obtenidas exitosamente",
       people,
