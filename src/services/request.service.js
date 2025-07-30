@@ -122,10 +122,12 @@ const RequestService = {
             {
               model: Document,
               as: "documents",
+              order: [['id', 'ASC']],
               include: [
                 {
                   model: Resource,
                   as: "resources",
+                  order: [['id', 'ASC']],
                   attributes: [
                     "id",
                     "name",
@@ -255,6 +257,7 @@ const RequestService = {
           ],
         },
       ],
+      order: [['id', 'ASC']], // Agregar ordenamiento principal por id
       attributes: [
         "id",
         "dni",
@@ -303,10 +306,12 @@ const RequestService = {
         {
           model: Document,
           as: "documents",
+          order: [['id', 'ASC']], // Agregar ordenamiento por id
           include: [
             {
               model: Resource,
               as: "resources",
+              order: [['id', 'ASC']], // Agregar ordenamiento por id
               attributes: [
                 "id",
                 "name",
@@ -589,24 +594,24 @@ const RequestService = {
       const personsCount = request.persons ? request.persons.length : 0;
       const documentsCount = request.persons
         ? request.persons.reduce(
-            (acc, person) =>
-              acc + (person.documents ? person.documents.length : 0),
-            0
-          )
+          (acc, person) =>
+            acc + (person.documents ? person.documents.length : 0),
+          0
+        )
         : 0;
       const resourcesCount = request.persons
         ? request.persons.reduce(
-            (acc, person) =>
-              acc +
-              (person.documents
-                ? person.documents.reduce(
-                    (docAcc, doc) =>
-                      docAcc + (doc.resources ? doc.resources.length : 0),
-                    0
-                  )
-                : 0),
-            0
-          )
+          (acc, person) =>
+            acc +
+            (person.documents
+              ? person.documents.reduce(
+                (docAcc, doc) =>
+                  docAcc + (doc.resources ? doc.resources.length : 0),
+                0
+              )
+              : 0),
+          0
+        )
         : 0;
 
       // Eliminar en orden: Resources -> Documents -> Persons -> Request
