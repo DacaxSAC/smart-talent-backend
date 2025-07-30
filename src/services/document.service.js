@@ -1,4 +1,4 @@
-const { Document } = require('../models');
+const { Document, Person } = require('../models');
 const { sequelize } = require('../config/database');
 
 const DocumentService = {
@@ -11,6 +11,7 @@ const DocumentService = {
       }
 
       const results = [];
+      const personsToCheck = new Set(); // Para rastrear qué personas verificar
       
       for (const update of updates) {
         const { id, result, filename } = update;
@@ -34,6 +35,8 @@ const DocumentService = {
           document.filename = filename;
           document.status = 'Realizado';
           hasChanges = true;
+          // Agregar la persona a la lista de verificación
+          personsToCheck.add(document.personId);
         }
         
         // Solo guardar si hubo cambios reales
@@ -43,6 +46,11 @@ const DocumentService = {
         } else {
           results.push({ id, status: 'no changes' });
         }
+      }
+
+      // Verificar y actualizar el estado de las personas
+      for (const personId of personsToCheck) {
+        await this.checkAndUpdatePersonStatus(personId, t);
       }
 
       await t.commit();
@@ -57,6 +65,28 @@ const DocumentService = {
     }
   },
 
+  async checkAndUpdatePersonStatus(personId, transaction) {
+    // Obtener todos los documentos de la persona
+    const documents = await Document.findAll({
+      where: { personId },
+      transaction
+    });
+
+    // Verificar si todos los documentos están realizados
+    const allCompleted = documents.length > 0 && documents.every(doc => doc.status === 'Realizado');
+
+    if (allCompleted) {
+      // Actualizar el estado de la persona a COMPLETED
+      await Person.update(
+        { status: 'COMPLETED' },
+        { 
+          where: { id: personId },
+          transaction
+        }
+      );
+    }
+  },
+
   async getDocumentById(id) {
     const document = await Document.findByPk(id);
     if (!document) {
@@ -66,15 +96,28 @@ const DocumentService = {
   },
 
   async updateDocumentStatus(id, status) {
-    const document = await Document.findByPk(id);
-    if (!document) {
-      throw new Error('Documento no encontrado');
+    const t = await sequelize.transaction();
+    
+    try {
+      const document = await Document.findByPk(id, { transaction: t });
+      if (!document) {
+        throw new Error('Documento no encontrado');
+      }
+      
+      document.status = status;
+      await document.save({ transaction: t });
+      
+      // Si el documento se marca como 'Realizado', verificar el estado de la persona
+      if (status === 'Realizado') {
+        await this.checkAndUpdatePersonStatus(document.personId, t);
+      }
+      
+      await t.commit();
+      return document;
+    } catch (error) {
+      await t.rollback();
+      throw error;
     }
-    
-    document.status = status;
-    await document.save();
-    
-    return document;
   }
 };
 
