@@ -395,5 +395,90 @@ router.put('/:id/reactivate', [
   EntityController.reactivate
 );
 
+/**
+ * @swagger
+ * /entities/{id}/users:
+ *   post:
+ *     summary: Agregar usuario adicional a entidad jurídica (Admin)
+ *     description: Permite agregar un usuario adicional a una entidad de tipo JURIDICA. Solo las entidades jurídicas pueden tener múltiples usuarios.
+ *     tags: [Entities]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID de la entidad jurídica
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - email
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 format: email
+ *                 description: Correo electrónico del nuevo usuario
+ *               username:
+ *                 type: string
+ *                 description: Nombre de usuario (opcional, se genera automáticamente si no se proporciona)
+ *     responses:
+ *       201:
+ *         description: Usuario agregado exitosamente a la entidad
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "Usuario agregado exitosamente a la entidad"
+ *                 user:
+ *                   type: object
+ *                   properties:
+ *                     id:
+ *                       type: string
+ *                     username:
+ *                       type: string
+ *                     email:
+ *                       type: string
+ *                     active:
+ *                       type: boolean
+ *                     entityId:
+ *                       type: string
+ *                     isPrimary:
+ *                       type: boolean
+ *                       example: false
+ *                     roles:
+ *                       type: array
+ *                       items:
+ *                         type: object
+ *                         properties:
+ *                           id:
+ *                             type: string
+ *                           name:
+ *                             type: string
+ *       400:
+ *         description: Datos inválidos, entidad no es jurídica, o usuario con email ya existe
+ *       401:
+ *         description: No autenticado
+ *       403:
+ *         description: No autorizado (requiere rol ADMIN)
+ *       404:
+ *         description: Entidad no encontrada
+ *       500:
+ *         description: Error interno del servidor
+ */
+router.post('/:id/users', [
+    authMiddleware,
+    roleMiddleware(['ADMIN'])
+  ],
+  EntityController.addUser
+);
 
 module.exports = router;

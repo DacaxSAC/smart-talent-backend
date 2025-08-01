@@ -70,7 +70,7 @@ const EntityService = {
       // Generar contraseña segura
       const userPassword = PasswordGenerator.generateSecure(12);
 
-      // Crear usuario asociado
+      // Crear usuario asociado (siempre será el usuario primario)
       const user = await User.create({
         username: type === 'NATURAL'
           ? `${firstName} ${paternalSurname} ${maternalSurname}`
@@ -78,7 +78,8 @@ const EntityService = {
         email,
         password: userPassword,
         active: true,
-        entityId: entity.id
+        entityId: entity.id,
+        isPrimary: true
       }, { transaction });
 
       // Asignar rol al usuario
@@ -115,6 +116,114 @@ const EntityService = {
   },
 
   /**
+   * Busca o crea una entidad con su usuario asociado usando transacciones
+   * @param {Object} data - Datos de la entidad y usuario
+   * @returns {Object} Resultado con entidad y usuario encontrados o creados
+   */
+  async findOrCreateEntityWithUser(data) {
+    const {
+      type,
+      documentNumber,
+      firstName,
+      paternalSurname,
+      maternalSurname,
+      address,
+      phone,
+      businessName,
+      email
+    } = data;
+
+    // Iniciar transacción
+    const transaction = await sequelize.transaction();
+
+    try {
+      // Buscar o crear la entidad
+      const [entity, entityCreated] = await Entity.findOrCreate({
+        where: { documentNumber },
+        defaults: {
+          type,
+          documentNumber,
+          firstName,
+          paternalSurname,
+          maternalSurname,
+          businessName,
+          address,
+          phone,
+          active: true
+        },
+        transaction
+      });
+
+      let user = null;
+      let userCreated = false;
+
+      if (entityCreated) {
+        // Si la entidad es nueva, crear el usuario asociado
+        const userRole = await Role.findOne({ 
+          where: { name: 'USER' },
+          transaction
+        });
+        if (!userRole) {
+          throw new Error('Error al asignar rol: Rol USER no encontrado');
+        }
+
+        // Generar contraseña segura
+        const userPassword = PasswordGenerator.generateSecure(12);
+
+        // Crear usuario asociado (siempre será el usuario primario)
+        user = await User.create({
+          username: type === 'NATURAL'
+            ? `${firstName} ${paternalSurname} ${maternalSurname}`
+            : businessName,
+          email,
+          password: userPassword,
+          active: true,
+          entityId: entity.id,
+          isPrimary: true
+        }, { transaction });
+
+        // Asignar rol al usuario
+        await user.setRoles([userRole], { transaction });
+
+        // Enviar correo con las credenciales 
+        await sendEmailCreateUser(user.email, userPassword);
+        
+        userCreated = true;
+      } else {
+        // Si la entidad ya existe, buscar su usuario primario
+        user = await User.findOne({
+          where: { 
+            entityId: entity.id,
+            isPrimary: true,
+            active: true 
+          },
+          include: [{
+            model: Role,
+            attributes: ['id', 'name'],
+            through: { attributes: [] }
+          }],
+          transaction
+        });
+      }
+
+      // Confirmar transacción
+      await transaction.commit();
+
+      return {
+        message: entityCreated ? 'Entidad y usuario creados exitosamente' : 'Entidad y usuario ya existían',
+        entity,
+        user,
+        created: entityCreated
+      };
+
+    } catch (error) {
+      // Revertir transacción en caso de error
+      await transaction.rollback();
+      throw error;
+    }
+  },
+
+  /**
    * Obtiene todas las entidades (activas e inactivas) con sus usuarios asociados
    * @returns {Array} Lista de todas las entidades
    */
@@ -123,7 +232,7 @@ const EntityService = {
       include: [{
         model: User,
         as: 'user',
-        attributes: ['id', 'username', 'email','entityId', 'active'],
+        attributes: ['id', 'username', 'email','entityId', 'active', 'isPrimary'],
         required: false, // LEFT JOIN para incluir entidades sin usuario
         include: [{
           model: Role,
@@ -144,8 +253,8 @@ const EntityService = {
       where: { active: true }, // Solo entidades activas
       include: [{
         model: User,
-        as: 'user',
-        attributes: ['id', 'username', 'email'],
+        as: 'users',
+        attributes: ['id', 'username', 'email', 'isPrimary'],
         where: { active: true }, // Solo usuarios activos
         required: false, // LEFT JOIN para incluir entidades sin usuario
         include: [{
@@ -161,6 +270,96 @@ const EntityService = {
     }
 
     return entity;
+  },
+
+  /**
+   * Agrega un usuario adicional a una entidad jurídica
+   * @param {number} entityId - ID de la entidad
+   * @param {Object} userData - Datos del nuevo usuario
+   * @returns {Object} Usuario creado
+   */
+  async addUserToEntity(entityId, userData) {
+    const { email, username } = userData;
+
+    // Iniciar transacción
+    const transaction = await sequelize.transaction();
+
+    try {
+      // Verificar que la entidad existe y es activa
+      const entity = await Entity.findByPk(entityId, {
+        where: { active: true },
+        transaction
+      });
+      if (!entity) {
+        throw new Error('Entidad no encontrada');
+      }
+
+      // Verificar que la entidad es de tipo JURIDICA
+      if (entity.type !== 'JURIDICA') {
+        throw new Error('Solo se pueden agregar usuarios adicionales a entidades jurídicas');
+      }
+
+      // Verificar si ya existe un usuario con ese email
+      const existingUser = await User.findOne({
+        where: { email, active: true },
+        transaction
+      });
+      if (existingUser) {
+        throw new Error('Ya existe un usuario con este email');
+      }
+
+      // Obtener el rol USER
+      const userRole = await Role.findOne({ 
+        where: { name: 'USER' },
+        transaction
+      });
+      if (!userRole) {
+        throw new Error('Error al asignar rol: Rol USER no encontrado');
+      }
+
+      // Generar contraseña segura
+      const userPassword = PasswordGenerator.generateSecure(12);
+
+      // Crear el nuevo usuario (no será primario)
+      const user = await User.create({
+        username: username || `Usuario ${entity.businessName}`,
+        email,
+        password: userPassword,
+        active: true,
+        entityId: entity.id,
+        isPrimary: false // Los usuarios adicionales no son primarios
+      }, { transaction });
+
+      // Asignar rol al usuario
+      await user.setRoles([userRole], { transaction });
+
+      // Obtener el usuario con roles para la respuesta
+      const userWithRoles = await User.findByPk(user.id, {
+        attributes: { exclude: ['password'] },
+        include: [{
+          model: Role,
+          attributes: ['id', 'name'],
+          through: { attributes: [] }
+        }],
+        transaction
+      });
+
+      // Enviar correo con las credenciales 
+      await sendEmailCreateUser(user.email, userPassword);
+      
+      // Confirmar transacción
+      await transaction.commit();
+
+      return {
+        message: 'Usuario agregado exitosamente a la entidad',
+        user: userWithRoles
+      };
+
+    } catch (error) {
+      // Revertir transacción en caso de error
+      await transaction.rollback();
+      throw error;
+    }
   },
 
   async updateEntity(id, updateData) {

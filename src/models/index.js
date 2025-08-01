@@ -26,7 +26,7 @@ const ResourceType = ResourceTypeModel(sequelize);
 User.belongsToMany(Role, { through: 'UserRoles' });
 Role.belongsToMany(User, { through: 'UserRoles' });
 
-Entity.hasOne(User, { foreignKey: 'entityId', as: 'user'});
+Entity.hasMany(User, { foreignKey: 'entityId', as: 'users'});
 User.belongsTo(Entity, { foreignKey: 'entityId', as: 'entity' });
 
 User.belongsToMany(Person, { through: 'UserPeople' });

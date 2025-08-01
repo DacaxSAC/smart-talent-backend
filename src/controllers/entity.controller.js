@@ -96,6 +96,31 @@ const EntityController = {
       
       res.status(statusCode).json({ message: error.message });
     }
+  },
+
+  // Agregar usuario adicional a entidad jurídica
+  addUser: async (req, res) => {
+    try {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res.status(400).json({ errors: errors.array() });
+      }
+
+      const result = await EntityService.addUserToEntity(req.params.id, req.body);
+      res.status(201).json(result);
+    } catch (error) {
+      console.error('Error al agregar usuario a entidad:', error);
+      let statusCode = 500;
+      
+      if (error.message === 'Entidad no encontrada') {
+        statusCode = 404;
+      } else if (error.message === 'Solo se pueden agregar usuarios adicionales a entidades jurídicas' || 
+                 error.message === 'Ya existe un usuario con este email') {
+        statusCode = 400;
+      }
+      
+      res.status(statusCode).json({ message: error.message });
+    }
   }
 
 };

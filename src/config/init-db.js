@@ -26,9 +26,21 @@ const initDatabase = async () => {
       }
     ];
 
-    // Insertar roles en la base de datos
-    await Role.bulkCreate(roles);
-    console.log('Roles predeterminados creados exitosamente');
+    // Crear roles usando findOrCreate para evitar duplicados
+    const createdRoles = [];
+    for (const roleData of roles) {
+      const [role, created] = await Role.findOrCreate({
+        where: { name: roleData.name },
+        defaults: roleData
+      });
+      createdRoles.push(role);
+      if (created) {
+        console.log(`Rol ${roleData.name} creado exitosamente`);
+      } else {
+        console.log(`Rol ${roleData.name} ya existe`);
+      }
+    }
+    console.log('Verificación de roles completada');
 
     // Crear usuarios para cada rol
     const usersData = [
@@ -37,6 +49,7 @@ const initDatabase = async () => {
         email: 'admin@smarttalent.com',
         password: 'Admin@123',
         active: true,
+        isPrimary: false,
         roleName: 'ADMIN'
       },
       {
@@ -44,24 +57,34 @@ const initDatabase = async () => {
         email: 'recruiter@smarttalent.com',
         password: 'Recruiter@123',
         active: true,
+        isPrimary: false,
         roleName: 'RECRUITER'
       }
     ];
 
-    // Crear usuarios y asignar roles
+    // Crear usuarios y asignar roles usando findOrCreate
     for (const userData of usersData) {
       const { roleName, ...userInfo } = userData;
-      const user = await User.create(userInfo);
-      const role = await Role.findOne({ where: { name: roleName } });
-      await user.addRole(role);
-      console.log(`Usuario ${roleName} creado exitosamente`);
-      console.log(`Email: ${userInfo.email}`);
-      console.log(`Contraseña: ${userInfo.password}`);
+      const [user, userCreated] = await User.findOrCreate({
+        where: { email: userInfo.email },
+        defaults: userInfo
+      });
+      
+      if (userCreated) {
+        const role = await Role.findOne({ where: { name: roleName } });
+        await user.addRole(role);
+        console.log(`Usuario ${roleName} creado exitosamente`);
+        console.log(`Email: ${userInfo.email}`);
+        console.log(`Contraseña: ${userInfo.password}`);
+      } else {
+        console.log(`Usuario ${roleName} ya existe`);
+        console.log(`Email: ${userInfo.email}`);
+      }
       console.log('-------------------');
     }
 
     // Entidad Natural por defecto
-    const entidadNatural = await EntityService.createEntityWithUser({
+    const entidadNatural = await EntityService.findOrCreateEntityWithUser({
       type: 'NATURAL',
       documentNumber: '12345678',
       firstName: 'Juan',
@@ -72,10 +95,10 @@ const initDatabase = async () => {
       email: 'natural@prueba.com',
       active: true
     });
-    console.log('Entidad NATURAL por defecto creada', entidadNatural);
+    console.log(entidadNatural.created ? 'Entidad NATURAL por defecto creada' : 'Entidad NATURAL ya existía', entidadNatural.message);
 
     // Entidad Jurídica por defecto
-    const entidadJuridica = await EntityService.createEntityWithUser({
+    const entidadJuridica = await EntityService.findOrCreateEntityWithUser({
       type: 'JURIDICA',
       documentNumber: '20123456789',
       businessName: 'Empresa Ejemplo SAC',
@@ -84,10 +107,10 @@ const initDatabase = async () => {
       email: 'juridica@prueba.com',
       active: true
     });
-    console.log('Entidad JURIDICA por defecto creada', entidadJuridica);
+    console.log(entidadJuridica.created ? 'Entidad JURIDICA por defecto creada' : 'Entidad JURIDICA ya existía', entidadJuridica.message);
 
     // Mi usuario de prueba (DUCZ)
-    const entidadDucz = await EntityService.createEntityWithUser({
+    const entidadDucz = await EntityService.findOrCreateEntityWithUser({
       type: 'JURIDICA',
       documentNumber: '10123456789',
       businessName: 'Dacax SAC',
@@ -96,35 +119,29 @@ const initDatabase = async () => {
       email: 'contact@dacax.dev',
       active: true
     });
-    console.log('Entidad DUCZ por defecto creada', entidadDucz);
+    console.log(entidadDucz.created ? 'Entidad DUCZ por defecto creada' : 'Entidad DUCZ ya existía', entidadDucz.message);
 
     // Crear tipos de documentos predeterminados
     const documentTypes = [
-      {
-        name: 'Antecedentes Nacionales',
-        isActive: true
-      },
-      {
-        name: 'Verificación laboral',
-        isActive: true
-      },
-      {
-        name: 'Verificación Académica',
-        isActive: true
-      },
-      {
-        name: 'Verificación Crediticia',
-        isActive: true
-      },
-      {
-        name: 'Verificación Domiciliaria',
-        isActive: true
-      }
+      'Antecedentes Nacionales',
+      'Verificación laboral',
+      'Verificación Académica',
+      'Verificación Crediticia',
+      'Verificación Domiciliaria'
     ];
 
-    // Insertar tipos de documentos
-    const createdDocTypes = await DocumentType.bulkCreate(documentTypes);
-    console.log('Tipos de documentos creados exitosamente');
+    // Insertar tipos de documentos usando findOrCreate
+    for (const docTypeName of documentTypes) {
+      const [docType, created] = await DocumentType.findOrCreate({
+        where: { name: docTypeName },
+        defaults: {
+          name: docTypeName,
+          isActive: true
+        }
+      });
+      console.log(created ? `Tipo de documento '${docTypeName}' creado` : `Tipo de documento '${docTypeName}' ya existe`);
+    }
+    console.log('Verificación de tipos de documentos completada');
 
     // Crear tipos de recursos
     const resourceTypes = [
@@ -181,29 +198,56 @@ const initDatabase = async () => {
       },
     ];
 
-    // Insertar tipos de recursos
-    const createdResourceTypes = await ResourceType.bulkCreate(resourceTypes);
-    console.log('Tipos de recursos creados exitosamente');
+    // Insertar tipos de recursos usando findOrCreate
+    const createdResourceTypes = [];
+    for (const resourceType of resourceTypes) {
+      const [resType, created] = await ResourceType.findOrCreate({
+        where: { name: resourceType.name },
+        defaults: resourceType
+      });
+      createdResourceTypes.push(resType);
+      console.log(created ? `Tipo de recurso '${resourceType.name}' creado` : `Tipo de recurso '${resourceType.name}' ya existe`);
+    }
+    console.log('Verificación de tipos de recursos completada');
+
+    // Obtener tipos de documentos para las asociaciones
+    const docTypes = await DocumentType.findAll({
+      where: {
+        name: {
+          [sequelize.Sequelize.Op.in]: documentTypes
+        }
+      }
+    });
 
     // Asociar tipos de documentos con tipos de recursos
     const documentResourceAssociations = [
       // Antecedentes Nacionales
-      { docType: createdDocTypes[0], resources: [createdResourceTypes[0], createdResourceTypes[1]] },
+      { docTypeName: 'Antecedentes Nacionales', resourceIndexes: [0, 1] },
       // Verificación laboral
-      { docType: createdDocTypes[1], resources: [createdResourceTypes[5], createdResourceTypes[1]] },
+      { docTypeName: 'Verificación laboral', resourceIndexes: [5, 1] },
       // Verificación Académica
-      { docType: createdDocTypes[2], resources: [createdResourceTypes[6], createdResourceTypes[1]] },
+      { docTypeName: 'Verificación Académica', resourceIndexes: [6, 1] },
       // Verificación Crediticia
-      { docType: createdDocTypes[3], resources: [createdResourceTypes[1]] },
+      { docTypeName: 'Verificación Crediticia', resourceIndexes: [1] },
       // Verificación Domiciliaria
-      { docType: createdDocTypes[4], resources: [createdResourceTypes[2], createdResourceTypes[3], createdResourceTypes[4]] }
+      { docTypeName: 'Verificación Domiciliaria', resourceIndexes: [2, 3, 4] }
     ];
 
     // Crear las asociaciones
     for (const association of documentResourceAssociations) {
-      await association.docType.addResourceTypes(association.resources);
+      const docType = docTypes.find(dt => dt.name === association.docTypeName);
+      if (docType) {
+        const resources = association.resourceIndexes.map(index => createdResourceTypes[index]);
+        try {
+          await docType.addResourceTypes(resources);
+          console.log(`Asociaciones creadas para ${association.docTypeName}`);
+        } catch (error) {
+          // Ignorar errores de asociaciones duplicadas
+          console.log(`Asociaciones ya existen para ${association.docTypeName}`);
+        }
+      }
     }
-    console.log('Asociaciones entre tipos de documentos y recursos creadas exitosamente');
+    console.log('Verificación de asociaciones entre tipos de documentos y recursos completada');
   } catch (error) {
     console.error('Error al inicializar la base de datos:', error);
     process.exit(1);

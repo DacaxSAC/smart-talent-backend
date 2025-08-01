@@ -3,10 +3,12 @@ const { Model, DataTypes } = require('sequelize');
 module.exports = (sequelize) => {
   class Entity extends Model {
     static associate(models) {
-      // Una entidad puede tener un usuario asociado
-      Entity.hasOne(models.User, {
+      // Una entidad puede tener múltiples usuarios asociados
+      // Para NATURAL: solo un usuario (validado en lógica de negocio)
+      // Para JURIDICA: múltiples usuarios permitidos
+      Entity.hasMany(models.User, {
         foreignKey: 'entityId',
-        as: 'user'
+        as: 'users'
       });
       
       // Una entidad puede tener muchas solicitudes

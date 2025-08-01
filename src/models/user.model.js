@@ -51,6 +51,11 @@ module.exports = (sequelize) => {
         key: 'id'
       }
     },
+    isPrimary: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: false,
+      comment: 'Indica si es el usuario principal de la entidad (especialmente para entidades jurídicas)'
+    },
     resetPasswordToken: {
       type: DataTypes.STRING,
       allowNull: true
