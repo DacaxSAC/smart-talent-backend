@@ -231,7 +231,7 @@ const EntityService = {
     return await Entity.findAll({
       include: [{
         model: User,
-        as: 'user',
+        as: 'users',
         attributes: ['id', 'username', 'email','entityId', 'active', 'isPrimary'],
         required: false, // LEFT JOIN para incluir entidades sin usuario
         include: [{
