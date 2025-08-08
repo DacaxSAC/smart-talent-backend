@@ -2,6 +2,7 @@ const express = require('express');
 const swaggerUI = require('swagger-ui-express');
 const swaggerSpec = require('../config/swagger');
 const authRouter = require('./auth.routes');
+const billingRouter = require('./billing.routes');
 const documentsRouter = require('./document.routes');
 const documentTypesRouter = require('./documentType.routes');
 const entitiesRouter = require('./entity.routes');
@@ -20,6 +21,7 @@ function routerApi(app){
 
   app.use('/api/v1', router);
   router.use('/auth', authRouter);
+  router.use('/billing', billingRouter);
   router.use('/roles', rolesRouter);
   router.use('/users', usersRouter);
   router.use('/entities', entitiesRouter);
