@@ -114,14 +114,18 @@ const RequestService = {
     // Obtener todas las solicitudes de la entidad
     const requests = await Request.findAll({
       where: { entityId },
+      order: [['createdAt', 'DESC']], // Ordenar por fecha de creación (más reciente primero)
       include: [
         {
           model: Person,
           as: "persons",
+          attributes: ["id", "dni", "fullname", "phone", "status", "observations", "createdAt", "updatedAt"],
+          order: [['createdAt', 'DESC']], // Ordenar personas por fecha de creación
           include: [
             {
               model: Document,
               as: "documents",
+              attributes: ["id", "name", "result", "filename", "status", "createdAt", "updatedAt"],
               order: [['id', 'ASC']],
               include: [
                 {
@@ -133,6 +137,8 @@ const RequestService = {
                     "name",
                     "value",
                     "documentId",
+                    "createdAt",
+                    "updatedAt",
                     [
                       sequelize.literal(
                         '"persons->documents->resources->resourceType"."allowedFileTypes"'
@@ -237,6 +243,7 @@ const RequestService = {
         {
           model: Document,
           as: "documents",
+          attributes: ["id", "name", "result", "filename", "status", "createdAt", "updatedAt"],
           order: [['id', 'ASC']], // Agregar ordenamiento por id
           include: [
             {
@@ -248,6 +255,8 @@ const RequestService = {
                 "name",
                 "value",
                 "documentId",
+                "createdAt",
+                "updatedAt",
                 [
                   sequelize.literal(
                     '"documents->resources->resourceType"."allowedFileTypes"'
@@ -275,6 +284,8 @@ const RequestService = {
         "phone",
         "status",
         "observations",
+        "createdAt",
+        "updatedAt",
         [
           sequelize.literal(`
             CASE 
