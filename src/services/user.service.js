@@ -164,6 +164,41 @@ const UserService = {
     return {
       message: 'Usuario eliminado exitosamente'
     };
+  },
+
+  /**
+   * Alterna el estado active del usuario (true <-> false)
+   * @param {number} id - ID del usuario
+   * @returns {Object} Respuesta con el usuario actualizado
+   */
+  async toggleUserStatus(id) {
+    const user = await User.findByPk(id);
+    if (!user) {
+      throw new Error('Usuario no encontrado');
+    }
+
+    // Alternar el estado active
+    const newActiveStatus = !user.active;
+    
+    await User.update(
+      { active: newActiveStatus },
+      { where: { id } }
+    );
+
+    // Obtener el usuario actualizado con roles
+    const updatedUser = await User.findByPk(id, {
+      attributes: { exclude: ['password'] },
+      include: [{
+        model: Role,
+        attributes: ['id', 'name'],
+        through: { attributes: [] }
+      }]
+    });
+
+    return {
+      message: `Usuario ${newActiveStatus ? 'activado' : 'desactivado'} exitosamente`,
+      user: updatedUser
+    };
   }
 };
 

@@ -294,4 +294,44 @@ router.delete('/:id', [
   roleMiddleware(['ADMIN'])
 ], UserController.delete);
 
+/**
+ * @swagger
+ * /users/{id}/toggle-status:
+ *   patch:
+ *     summary: Alternar estado active del usuario (solo Admin)
+ *     tags: [Usuarios]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: ID del usuario
+ *     responses:
+ *       200:
+ *         description: Estado del usuario alternado exitosamente
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "Usuario activado exitosamente"
+ *                 user:
+ *                   $ref: '#/components/schemas/User'
+ *       404:
+ *         description: Usuario no encontrado
+ *       401:
+ *         description: No autorizado
+ *       403:
+ *         description: Acceso denegado
+ */
+router.patch('/:id/toggle-status', [
+  authMiddleware,
+  roleMiddleware(['ADMIN'])
+], UserController.toggleStatus);
+
 module.exports = router;

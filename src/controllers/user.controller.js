@@ -80,6 +80,19 @@ const UserController = {
       const statusCode = error.message === 'Usuario no encontrado' ? 404 : 500;
       res.status(statusCode).json({ message: error.message });
     }
+  },
+
+  // Alternar estado active del usuario
+  toggleStatus: async (req, res) => {
+    try {
+      const result = await UserService.toggleUserStatus(req.params.id);
+
+      res.status(200).json(result);
+    } catch (error) {
+      console.error('Error al cambiar estado del usuario:', error);
+      const statusCode = error.message === 'Usuario no encontrado' ? 404 : 500;
+      res.status(statusCode).json({ message: error.message });
+    }
   }
 };
 
