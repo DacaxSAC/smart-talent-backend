@@ -1,4 +1,4 @@
-const { Request, Entity, User } = require('../models');
+const { Request, Entity, Person, Document, DocumentType } = require('../models');
 const { Op } = require('sequelize');
 
 const BillingService = {
@@ -61,7 +61,26 @@ const BillingService = {
         {
           model: Entity,
           as: 'entity',
-          attributes: ['id', 'type', 'businessName', 'firstName', 'paternalSurname']
+          attributes: ['id', 'type', 'businessName', 'firstName', 'paternalSurname', 'documentNumber']
+        },
+        {
+          model: Person,
+          as: 'persons',
+          attributes: ['id', 'dni', 'fullname', 'status'],
+          include: [
+            {
+              model: Document,
+              as: 'documents',
+              attributes: ['id', 'name', 'status'],
+              include: [
+                {
+                  model: DocumentType,
+                  as: 'documentType',
+                  attributes: ['name']
+                }
+              ]
+            }
+          ]
         }
       ],
       order: [['createdAt', 'DESC']],
@@ -74,8 +93,39 @@ const BillingService = {
     const hasNextPage = page < totalPages;
     const hasPrevPage = page > 1;
 
+    // Obtener todos los tipos de documento existentes
+    const allDocTypes = await DocumentType.findAll({ attributes: ['name'] });
+
+    // Transformar datos al formato solicitado, asegurando que aparezca cada tipo de documento
+    const transformedRequests = rows.map(request => {
+      // Usaremos la primera persona para los documentos (asunción actual)
+      const mainPerson = request.persons && request.persons.length > 0 ? request.persons[0] : null;
+      const personDocs = mainPerson ? mainPerson.documents || [] : [];
+
+      // Construir lista completa de documentos por tipo
+      const completeDocs = allDocTypes.map(dt => {
+        const found = personDocs.find(d => d.documentType && d.documentType.name === dt.name);
+        return {
+          name: dt.name,
+          status: found ? found.status : ''
+        };
+      });
+
+      return {
+        id: request.id,
+        date: request.createdAt,
+        owner: request.entity?.type === 'NATURAL' 
+          ? `${request.entity.firstName} ${request.entity.paternalSurname}`.trim()
+          : request.entity?.businessName || 'N/A',
+        dni: request.entity?.documentNumber || 'N/A',
+        fullname: mainPerson ? mainPerson.fullname : 'N/A',
+        status: request.status,
+        documents: completeDocs
+      };
+    });
+
     return {
-      requests: rows,
+      requests: transformedRequests,
       pagination: {
         currentPage: parseInt(page),
         totalPages,
