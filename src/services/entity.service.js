@@ -229,6 +229,7 @@ const EntityService = {
    */
   async getAllEntities() {
     return await Entity.findAll({
+      order: [['createdAt', 'DESC']],
       include: [{
         model: User,
         as: 'users',
@@ -255,7 +256,7 @@ const EntityService = {
         model: User,
         as: 'users',
         attributes: ['id', 'username', 'email','entityId', 'active', 'isPrimary'],
-        where: { active: true }, // Solo usuarios activos
+        
         required: false, // LEFT JOIN para incluir entidades sin usuario
         include: [{
           model: Role,
