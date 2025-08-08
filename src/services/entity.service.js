@@ -254,7 +254,7 @@ const EntityService = {
       include: [{
         model: User,
         as: 'users',
-        attributes: ['id', 'username', 'email', 'isPrimary'],
+        attributes: ['id', 'username', 'email','entityId', 'active', 'isPrimary'],
         where: { active: true }, // Solo usuarios activos
         required: false, // LEFT JOIN para incluir entidades sin usuario
         include: [{
