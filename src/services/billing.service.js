@@ -104,10 +104,10 @@ const BillingService = {
 
       // Construir lista completa de documentos por tipo
       const completeDocs = allDocTypes.map(dt => {
-        const found = personDocs.find(d => d.documentType && d.documentType.name === dt.name);
+        const found = personDocs.filter(d => d.documentType && d.documentType.name === dt.name);
         return {
           name: dt.name,
-          status: found ? found.status : ''
+          numberDocsCompleted: found ? found.map(d => d.status).filter(s => s === 'Realizado').length : 0,
         };
       });
 
