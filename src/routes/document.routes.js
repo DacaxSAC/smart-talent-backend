@@ -7,7 +7,7 @@ const { authMiddleware } = require('../middleware/auth.middleware');
  * @swagger
  * /document/bulk-update:
  *   put:
- *     summary: Actualizar el resultado y el nombre de archivo de varios documentos
+ *     summary: Actualizar el resultado, nombre de archivo y semáforo de varios documentos
  *     tags: [Document]
  *     security:
  *       - bearerAuth: []
@@ -37,9 +37,14 @@ const { authMiddleware } = require('../middleware/auth.middleware');
  *                       description: Nuevo resultado del documento
  *                       example: "Aprobado"
  *                     filename:
- *                       type: string
- *                       description: Nuevo nombre de archivo
- *                       example: "documento_actualizado.pdf"
+                       type: string
+                       description: Nuevo nombre de archivo
+                       example: "documento_actualizado.pdf"
+                     semaforo:
+                       type: string
+                       enum: ["PENDING", "CLEAR", "WARNING", "CRITICAL"]
+                       description: Estado del semáforo del documento
+                       example: "CLEAR"
  *     responses:
  *       200:
  *         description: Actualización masiva completada

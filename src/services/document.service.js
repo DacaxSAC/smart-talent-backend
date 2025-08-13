@@ -14,7 +14,7 @@ const DocumentService = {
       const personsToCheck = new Set(); // Para rastrear qué personas verificar
       
       for (const update of updates) {
-        const { id, result, filename } = update;
+        const { id, result, filename, semaforo } = update;
         
         const document = await Document.findByPk(id, { transaction: t });
         if (!document) {
@@ -37,6 +37,12 @@ const DocumentService = {
           hasChanges = true;
           // Agregar la persona a la lista de verificación
           personsToCheck.add(document.personId);
+        }
+        
+        // Actualizar semáforo si se proporciona
+        if (semaforo !== undefined && ['PENDING', 'CLEAR', 'WARNING', 'CRITICAL'].includes(semaforo)) {
+          document.semaforo = semaforo;
+          hasChanges = true;
         }
         
         // Solo guardar si hubo cambios reales
