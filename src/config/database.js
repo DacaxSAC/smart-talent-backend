@@ -26,7 +26,32 @@ const testConnection = async () => {
   }
 };
 
+// Configuración para sequelize-cli
 module.exports = {
-  sequelize,
-  testConnection
+  development: {
+    url: DB_CONNECTION_STRING,
+    dialect: 'postgres',
+    dialectOptions: {
+      ssl: {
+        require: true,
+        rejectUnauthorized: false,
+      },
+    },
+    logging: false,
+  },
+  production: {
+    url: DB_CONNECTION_STRING,
+    dialect: 'postgres',
+    dialectOptions: {
+      ssl: {
+        require: true,
+        rejectUnauthorized: false,
+      },
+    },
+    logging: false,
+  }
 };
+
+// Exportaciones originales para compatibilidad
+module.exports.sequelize = sequelize;
+module.exports.testConnection = testConnection;

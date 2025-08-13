@@ -32,6 +32,11 @@ module.exports = (sequelize) => {
       type: DataTypes.ENUM('Pendiente', 'Realizado', 'Rechazado'),
       defaultValue: 'Pendiente'
     },
+    semaforo: {
+      type: DataTypes.ENUM('PENDING', 'CLEAR', 'WARNING', 'CRITICAL'),
+      defaultValue: 'PENDING',
+      comment: 'Estado del semáforo: PENDING (inicial), CLEAR (verde), WARNING (amarillo), CRITICAL (rojo)'
+    },
     personId: {
       type: DataTypes.INTEGER,
       allowNull: false
