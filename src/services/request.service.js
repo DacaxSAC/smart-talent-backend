@@ -257,9 +257,23 @@ const RequestService = {
         {
           model: Document,
           as: "documents",
-          attributes: ["id", "name", "result", "filename", "status", "createdAt", "updatedAt"],
+          attributes: [
+            "id",
+            "documentTypeId",
+            "name",
+            "result",
+            "filename",
+            "status",
+            "createdAt",
+            "updatedAt",
+          ],
           order: [['id', 'ASC']], // Agregar ordenamiento por id
           include: [
+            {
+              model: DocumentType,
+              as: "documentType",
+              attributes: ["name"],
+            },
             {
               model: Resource,
               as: "resources",
@@ -312,9 +326,27 @@ const RequestService = {
       ],
     });
   
+    // Agregar documentId y documentNameId (mapeado desde documentTypeId)
+    const transformedPeople = people.map((person) => {
+      const p = person.toJSON();
+      if (Array.isArray(p.documents)) {
+        p.documents = p.documents.map((doc) => {
+          const d = {
+            ...doc,
+            documentId: doc.id,
+            documentNameId: doc.documentTypeId,
+            documentTypeName: doc.documentType ? doc.documentType.name : null,
+          };
+          delete d.documentType;
+          return d;
+        });
+      }
+      return p;
+    });
+  
     return {
       message: "Personas obtenidas exitosamente",
-      people,
+      people: transformedPeople,
     };
   },
 
