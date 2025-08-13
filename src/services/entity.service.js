@@ -413,29 +413,29 @@ const EntityService = {
   async deleteEntity(id) {
     // Iniciar transacción para mantener consistencia
     const transaction = await sequelize.transaction();
-
+  
     try {
       // Buscar la entidad con su usuario asociado
       const entity = await Entity.findByPk(id, {
         include: [{
           model: User,
-          as: 'user',
+          as: 'users', // Cambiar de 'user' a 'users'
           attributes: ['id', 'active']
         }],
         transaction
       });
-
+  
       if (!entity) {
         await transaction.rollback();
         throw new Error('Entidad no encontrada');
       }
-
+  
       // Verificar si la entidad ya está inactiva
       if (!entity.active) {
         await transaction.rollback();
         throw new Error('La entidad ya está eliminada');
       }
-
+  
       // Realizar soft delete de la entidad
       await Entity.update(
         { active: false },
@@ -444,30 +444,30 @@ const EntityService = {
           transaction
         }
       );
-
+  
       // Si existe un usuario asociado, también realizar soft delete
-       if (entity.user) {
-         await User.update(
-           { active: false },
-           {
-             where: { entityId: id },
-             transaction
-           }
-         );
-       }
-
+      if (entity.users && entity.users.length > 0) { // Cambiar entity.user a entity.users
+        await User.update(
+          { active: false },
+          {
+            where: { entityId: id },
+            transaction
+          }
+        );
+      }
+  
       // Confirmar transacción
       await transaction.commit();
-
+  
       return { message: 'Entidad eliminada exitosamente (soft delete)' };
-
+  
     } catch (error) {
       // Revertir transacción en caso de error
       await transaction.rollback();
       throw error;
     }
   },
-
+  
   /**
    * Reactiva una entidad y su usuario asociado (revertir soft delete)
    * @param {number} id - ID de la entidad
@@ -476,29 +476,29 @@ const EntityService = {
   async reactivateEntity(id) {
     // Iniciar transacción para mantener consistencia
     const transaction = await sequelize.transaction();
-
+  
     try {
       // Buscar la entidad con su usuario asociado
       const entity = await Entity.findByPk(id, {
         include: [{
           model: User,
-          as: 'user',
+          as: 'users', // Cambiar de 'user' a 'users'
           attributes: ['id', 'active']
         }],
         transaction
       });
-
+  
       if (!entity) {
         await transaction.rollback();
         throw new Error('Entidad no encontrada');
       }
-
+  
       // Verificar si la entidad ya está activa
       if (entity.active) {
         await transaction.rollback();
         throw new Error('La entidad ya está activa');
       }
-
+  
       // Reactivar la entidad
       await Entity.update(
         { active: true },
@@ -507,9 +507,9 @@ const EntityService = {
           transaction
         }
       );
-
+  
       // Si existe un usuario asociado, también reactivarlo
-      if (entity.user) {
+      if (entity.users && entity.users.length > 0) { // Cambiar entity.user a entity.users
         await User.update(
           { active: true },
           {
@@ -518,12 +518,12 @@ const EntityService = {
           }
         );
       }
-
+  
       // Confirmar transacción
       await transaction.commit();
-
+  
       return { message: 'Entidad reactivada exitosamente' };
-
+  
     } catch (error) {
       // Revertir transacción en caso de error
       await transaction.rollback();
