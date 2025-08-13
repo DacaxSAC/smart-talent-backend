@@ -7,6 +7,7 @@ const {
   ResourceType,
   User,
   Role,
+  DocumentType,
 } = require("../models");
 const { sequelize } = require("../config/database");
 const { Op } = require("sequelize");
@@ -129,6 +130,11 @@ const RequestService = {
               order: [['id', 'ASC']],
               include: [
                 {
+                  model: DocumentType,
+                  as: "documentType",
+                  attributes: ["name"],
+                },
+                {
                   model: Resource,
                   as: "resources",
                   order: [['id', 'ASC']],
@@ -180,9 +186,17 @@ const RequestService = {
       const persons = request.persons || [];
       return acc.concat(
         persons.map((person) => {
-          return {
-            ...person.toJSON(),
-          };
+          const personJSON = person.toJSON();
+          if (personJSON.documents) {
+            personJSON.documents = personJSON.documents.map((doc) => {
+              doc.documentTypeName = doc.documentType
+                ? doc.documentType.name
+                : null;
+              delete doc.documentType;
+              return doc;
+            });
+          }
+          return personJSON;
         })
       );
     }, []);
@@ -330,6 +344,11 @@ const RequestService = {
           order: [['id', 'ASC']], // Agregar ordenamiento por id
           include: [
             {
+              model: DocumentType,
+              as: "documentType",
+              attributes: ["name"],
+            },
+            {
               model: Resource,
               as: "resources",
               order: [['id', 'ASC']], // Agregar ordenamiento por id
@@ -396,6 +415,14 @@ const RequestService = {
     // Remover el objeto request de la respuesta pero mantener el campo owner calculado
     const personData = person.toJSON();
     delete personData.request;
+
+    if (personData.documents) {
+      personData.documents = personData.documents.map((doc) => {
+        doc.documentTypeName = doc.documentType ? doc.documentType.name : null;
+        delete doc.documentType;
+        return doc;
+      });
+    }
 
     return {
       message: "Persona obtenida exitosamente",
