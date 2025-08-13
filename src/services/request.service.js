@@ -126,7 +126,16 @@ const RequestService = {
             {
               model: Document,
               as: "documents",
-              attributes: ["id", "name", "result", "filename", "status", "createdAt", "updatedAt"],
+              attributes: [
+                "id",
+                "documentTypeId",
+                "name",
+                "result",
+                "filename",
+                "status",
+                "createdAt",
+                "updatedAt",
+              ],
               order: [['id', 'ASC']],
               include: [
                 {
