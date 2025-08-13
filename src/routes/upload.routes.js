@@ -46,7 +46,11 @@ const { authMiddleware } = require('../middleware/auth.middleware');
  *                   example: "https://storage.googleapis.com/..."
  *                 fileName:
  *                   type: string
- *                   description: Nombre del archivo
+ *                   description: Nombre único generado para el archivo (incluye timestamp y ID aleatorio)
+ *                   example: "documento_20250113_143025_a1b2c3.pdf"
+ *                 originalFileName:
+ *                   type: string
+ *                   description: Nombre original del archivo proporcionado por el cliente
  *                   example: "documento.pdf"
  *       400:
  *         description: Datos inválidos en la solicitud
