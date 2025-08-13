@@ -37,14 +37,14 @@ const { authMiddleware } = require('../middleware/auth.middleware');
  *                       description: Nuevo resultado del documento
  *                       example: "Aprobado"
  *                     filename:
-                       type: string
-                       description: Nuevo nombre de archivo
-                       example: "documento_actualizado.pdf"
-                     semaforo:
-                       type: string
-                       enum: ["PENDING", "CLEAR", "WARNING", "CRITICAL"]
-                       description: Estado del semáforo del documento
-                       example: "CLEAR"
+ *                       type: string
+ *                       description: Nuevo nombre de archivo
+ *                       example: "documento_actualizado.pdf"
+ *                     semaforo:
+ *                       type: string
+ *                       enum: ["PENDING", "CLEAR", "WARNING", "CRITICAL"]
+ *                       description: Estado del semáforo del documento
+ *                       example: "CLEAR"
  *     responses:
  *       200:
  *         description: Actualización masiva completada
