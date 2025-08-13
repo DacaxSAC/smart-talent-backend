@@ -4,7 +4,7 @@ require('dotenv').config();
 
 const initDatabase = async () => {
   try {
-    await sequelize.sync({ alter: true });//force
+    await sequelize.sync({ force: true });
     console.log('Conexión a PostgreSQL establecida para inicialización');
 
     // Crear roles predeterminados
@@ -82,45 +82,6 @@ const initDatabase = async () => {
       }
       console.log('-------------------');
     }
-
-    // Entidad Natural por defecto
-    const entidadNatural = await EntityService.findOrCreateEntityWithUser({
-      type: 'NATURAL',
-      documentNumber: '12345678',
-      firstName: 'Juan',
-      paternalSurname: 'Pérez',
-      maternalSurname: 'García',
-      address: 'Calle Falsa 123',
-      phone: '999888777',
-      email: 'natural@prueba.com',
-      active: true
-    });
-    console.log(entidadNatural.created ? 'Entidad NATURAL por defecto creada' : 'Entidad NATURAL ya existía', entidadNatural.message);
-
-    // Entidad Jurídica por defecto
-    const entidadJuridica = await EntityService.findOrCreateEntityWithUser({
-      type: 'JURIDICA',
-      documentNumber: '20123456789',
-      businessName: 'Empresa Ejemplo SAC',
-      address: 'Av. Principal 456',
-      phone: '988877766',
-      email: 'juridica@prueba.com',
-      active: true
-    });
-    console.log(entidadJuridica.created ? 'Entidad JURIDICA por defecto creada' : 'Entidad JURIDICA ya existía', entidadJuridica.message);
-
-    // Mi usuario de prueba (DUCZ)
-    const entidadDucz = await EntityService.findOrCreateEntityWithUser({
-      type: 'JURIDICA',
-      documentNumber: '10123456789',
-      businessName: 'Dacax SAC',
-      address: 'Av. Principal 456',
-      phone: '877774529',
-      email: 'contact@dacax.dev',
-      active: true
-    });
-    console.log(entidadDucz.created ? 'Entidad DUCZ por defecto creada' : 'Entidad DUCZ ya existía', entidadDucz.message);
-
     // Crear tipos de documentos predeterminados
     const documentTypes = [
       'Antecedentes Nacionales',
