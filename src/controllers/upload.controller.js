@@ -46,9 +46,6 @@ const UploadController = {
         });
       }
 
-      // Generar nombre único para evitar conflictos
-      const uniqueFileName = UploadController.generateUniqueFileName(fileName);
-
       const bucket = admin.storage().bucket();
       const file = bucket.file(uniqueFileName);
 
@@ -63,8 +60,7 @@ const UploadController = {
       res.json({
         message: 'URL firmada generada exitosamente',
         signedUrl,
-        fileName: uniqueFileName, // Devolver el nombre único generado
-        originalFileName: fileName // Mantener referencia al nombre original
+        fileName: fileName, // Devolver el nombre único generado
       });
 
     } catch (error) {
