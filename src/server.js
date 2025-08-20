@@ -26,7 +26,8 @@ app.use(cors({
 
     // production
     'https://smart-talent-prod.onrender.com',
-    
+    'https://smart-talent-prod.netlify.app'
+
   ],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
