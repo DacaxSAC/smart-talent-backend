@@ -23,6 +23,10 @@ app.use(cors({
     'https://smart-talent-frontend.vercel.app',
     'https://smart-talent-api-4d1h.onrender.com',
     'https://smart-talent.netlify.app',
+
+    // production
+    'https://smart-talent-prod.onrender.com',
+    
   ],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
