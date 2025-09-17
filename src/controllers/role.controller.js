@@ -1,5 +1,5 @@
-const { validationResult } = require('express-validator');
-const RoleService = require('../services/role.service');
+const { validationResult } = require("express-validator");
+const RoleService = require("../services/role.service");
 
 const RoleController = {
   // Crear un nuevo rol
@@ -14,12 +14,12 @@ const RoleController = {
       const role = await RoleService.createRole(req.body);
 
       res.status(201).json({
-        message: 'Rol creado exitosamente',
-        role
+        message: "Rol creado exitosamente",
+        role,
       });
     } catch (error) {
-      console.error('Error al crear rol:', error);
-      const statusCode = error.message === 'El rol ya existe' ? 400 : 500;
+      console.error("Error al crear rol:", error);
+      const statusCode = error.message === "El rol ya existe" ? 400 : 500;
       res.status(statusCode).json({ message: error.message });
     }
   },
@@ -30,7 +30,7 @@ const RoleController = {
       const roles = await RoleService.getAllRoles();
       res.status(200).json(roles);
     } catch (error) {
-      console.error('Error al obtener roles:', error);
+      console.error("Error al obtener roles:", error);
       res.status(500).json({ message: error.message });
     }
   },
@@ -41,8 +41,8 @@ const RoleController = {
       const role = await RoleService.getRoleById(req.params.id);
       res.status(200).json(role);
     } catch (error) {
-      console.error('Error al obtener rol:', error);
-      const statusCode = error.message === 'Rol no encontrado' ? 404 : 500;
+      console.error("Error al obtener rol:", error);
+      const statusCode = error.message === "Rol no encontrado" ? 404 : 500;
       res.status(statusCode).json({ message: error.message });
     }
   },
@@ -59,14 +59,19 @@ const RoleController = {
       const role = await RoleService.updateRole(req.params.id, req.body);
 
       res.status(200).json({
-        message: 'Rol actualizado exitosamente',
-        role
+        message: "Rol actualizado exitosamente",
+        role,
       });
     } catch (error) {
-      console.error('Error al actualizar rol:', error);
-      const statusCode = error.message === 'Rol no encontrado' ? 404 : 
-                        error.message.includes('No se puede modificar') ? 400 : 
-                        error.message === 'El nombre del rol ya existe' ? 400 : 500;
+      console.error("Error al actualizar rol:", error);
+      const statusCode =
+        error.message === "Rol no encontrado"
+          ? 404
+          : error.message.includes("No se puede modificar")
+          ? 400
+          : error.message === "El nombre del rol ya existe"
+          ? 400
+          : 500;
       res.status(statusCode).json({ message: error.message });
     }
   },
@@ -75,14 +80,18 @@ const RoleController = {
   delete: async (req, res) => {
     try {
       await RoleService.deleteRole(req.params.id);
-      res.status(200).json({ message: 'Rol eliminado exitosamente' });
+      res.status(200).json({ message: "Rol eliminado exitosamente" });
     } catch (error) {
-      console.error('Error al eliminar rol:', error);
-      const statusCode = error.message === 'Rol no encontrado' ? 404 : 
-                        error.message.includes('No se puede eliminar') ? 400 : 500;
+      console.error("Error al eliminar rol:", error);
+      const statusCode =
+        error.message === "Rol no encontrado"
+          ? 404
+          : error.message.includes("No se puede eliminar")
+          ? 400
+          : 500;
       res.status(statusCode).json({ message: error.message });
     }
-  }
+  },
 };
 
 module.exports = { RoleController };
