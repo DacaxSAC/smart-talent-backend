@@ -11,6 +11,7 @@ const ResourceModel = require("./resource.model");
 const DocumentTypeModel = require("./documentType.model");
 const ResourceTypeModel = require("./resourceType.model");
 const RecruitmentModel = require("./recruitment.model");
+const ProfileUpModel = require("./profileUp.model");
 
 // Inicializar modelos
 const User = UserModel(sequelize);
@@ -23,6 +24,7 @@ const Resource = ResourceModel(sequelize);
 const DocumentType = DocumentTypeModel(sequelize);
 const ResourceType = ResourceTypeModel(sequelize);
 const Recruitment = RecruitmentModel(sequelize);
+const ProfileUp = ProfileUpModel(sequelize);
 
 // Definir relaciones
 User.belongsToMany(Role, { through: "UserRoles" });
@@ -79,6 +81,13 @@ ResourceType.belongsToMany(DocumentType, {
 Recruitment.belongsTo(Entity, { foreignKey: "entityId", as: "entity" });
 Entity.hasMany(Recruitment, { foreignKey: "entityId", as: "recruitments" });
 
+// ProfileUp relationships
+ProfileUp.belongsTo(Recruitment, { foreignKey: "recruitmentId", as: "recruitment" });
+Recruitment.hasMany(ProfileUp, { foreignKey: "recruitmentId", as: "profileUps" });
+
+ProfileUp.belongsTo(Entity, { foreignKey: "entityId", as: "entity" });
+Entity.hasMany(ProfileUp, { foreignKey: "entityId", as: "profileUps" });
+
 module.exports = {
   sequelize,
   User,
@@ -90,4 +99,6 @@ module.exports = {
   Resource,
   DocumentType,
   ResourceType,
+  Recruitment,
+  ProfileUp,
 };

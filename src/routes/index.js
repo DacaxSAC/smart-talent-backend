@@ -11,6 +11,7 @@ const resourcesRouter = require('./resource.routes');
 const rolesRouter = require('./role.routes');
 const uploadsRouter = require('./upload.routes');
 const usersRouter = require('./user.routes');
+const recruitmentsRouter = require('./recruitment.routes');
 
 function routerApi(app){
   const router = express.Router();
@@ -30,6 +31,7 @@ function routerApi(app){
   router.use('/requests', requestsRouter);
   router.use('/resources', resourcesRouter);
   router.use('/upload', uploadsRouter);
+  router.use('/recruitments', recruitmentsRouter);
   router.use('/api-docs', swaggerUI.serve);  
   router.get('/api-docs', swaggerUI.setup(swaggerSpec));
 }
