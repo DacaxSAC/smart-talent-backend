@@ -46,7 +46,7 @@ module.exports = (sequelize) => {
       },
       
       // Especificaciones del puesto
-      workLocation: {
+      contractConditions: {
         type: DataTypes.STRING,
         allowNull: true,
       },
@@ -59,6 +59,26 @@ module.exports = (sequelize) => {
         allowNull: true,
       },
       contractType: {
+        type: DataTypes.STRING,
+        allowNull: true,
+      },
+      numberOfVacancies: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+      },
+      tentativeStartDate: {
+        type: DataTypes.DATE,
+        allowNull: true,
+      },
+      residenceLocation: {
+        type: DataTypes.STRING,
+        allowNull: true,
+      },
+      workLocation: {
+        type: DataTypes.STRING,
+        allowNull: true,
+      },
+      drivingLicense: {
         type: DataTypes.STRING,
         allowNull: true,
       },

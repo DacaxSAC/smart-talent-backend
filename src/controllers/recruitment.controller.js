@@ -10,21 +10,46 @@ const RecruitmentController = {
         return res.status(400).json({ errors: errors.array() });
       }
 
-      const { recruitmentType, entityId, profileData } = req.body;
+      const { type, profileUp } = req.body;
 
       // Validar que se proporcionen los datos requeridos
-      if (!recruitmentType || !entityId || !profileData) {
+      if (!type || !profileUp) {
         return res.status(400).json({
-          message: 'Tipo de reclutamiento, ID de entidad y datos del perfil son requeridos'
+          message: 'Tipo de reclutamiento y datos del perfil son requeridos'
         });
       }
 
+      // Mapear los campos del frontend al formato del backend
+      const jobFunctions = {
+        objetivo: profileUp.objetivo || '',
+        descripcion: profileUp.descripcion || []
+      };
+
+      const profileData = {
+        ...profileUp,
+        jobFunctions,
+        // Mapear campos específicos
+        positionName: profileUp.nombrePuesto,
+        contractConditions: profileUp.condicionesContratacion,
+        // Especificaciones del puesto
+        numberOfVacancies: profileUp.numeroVacantes ? parseInt(profileUp.numeroVacantes) : null,
+        tentativeStartDate: profileUp.fechaTentativaInicio || null,
+        residenceLocation: profileUp.lugarResidencia,
+        workLocation: profileUp.lugarTrabajo,
+        drivingLicense: profileUp.licenciaConducir,
+        salaryRangeFrom: profileUp.rangoSalarialMin ? parseFloat(profileUp.rangoSalarialMin) : null,
+        salaryRangeTo: profileUp.rangoSalarialMax ? parseFloat(profileUp.rangoSalarialMax) : null,
+        bonuses: profileUp.bonos,
+        paymentFrequency: profileUp.frecuenciaPago,
+        benefits: profileUp.beneficios
+      };
+
       const result = await RecruitmentService.createRecruitmentWithProfile({
-        recruitmentType,
-        entityId,
-        profileData,
-        createdBy: req.user?.id // Asumiendo que el usuario está en req.user
-      });
+         recruitmentType: type,
+         entityId: 1, // Por ahora usar un entityId fijo, esto debería venir del usuario autenticado
+         profileData,
+         createdBy: req.user?.id // Asumiendo que el usuario está en req.user
+       });
 
       res.status(201).json({
         message: 'Reclutamiento y perfil creados exitosamente',
