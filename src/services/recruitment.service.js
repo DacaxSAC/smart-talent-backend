@@ -1,34 +1,54 @@
 const { Recruitment, ProfileUp, Entity } = require('../models');
 const { sequelize } = require('../config/database');
 const { Op } = require('sequelize');
+const { withTransaction, canRollback } = require('../utils/transactionHelper');
 
 const RecruitmentService = {
   async createRecruitmentWithProfile(data) {
-    const t = await sequelize.transaction();
+    const { recruitmentType, entityId, profileData, createdBy } = data;
 
-    try {
-      const { recruitmentType, entityId, profileData, createdBy } = data;
-
+    const result = await withTransaction(async (t) => {
       // Verificar que la entidad existe
       const entity = await Entity.findByPk(entityId, { transaction: t });
       if (!entity) {
-        await t.rollback();
         throw new Error('Entidad no encontrada');
       }
 
+      // Mapear tipos de reclutamiento del frontend al backend
+      const typeMapping = {
+        'regular': 'RECLUTAMIENTO REGULAR',
+        'executive': 'HUNTING EJECUTIVO',
+        'massive': 'RECLUTAMIENTO MASIVO'
+      };
+
+      const mappedType = typeMapping[recruitmentType] || recruitmentType;
+
+      // Mapeo de frecuencia de pago
+      const paymentFrequencyMapping = {
+        'semanal': 'SEMANAL',
+        'quincenal': 'QUINCENAL',
+        'mensual': 'MENSUAL'
+      };
+      const mappedPaymentFrequency = profileData.paymentFrequency ? 
+        (paymentFrequencyMapping[profileData.paymentFrequency.toLowerCase()] || profileData.paymentFrequency) : 
+        profileData.paymentFrequency;
+
       // Validar tipo de reclutamiento
       const validTypes = ['RECLUTAMIENTO REGULAR', 'HUNTING EJECUTIVO', 'RECLUTAMIENTO MASIVO'];
-      if (!validTypes.includes(recruitmentType)) {
-        await t.rollback();
+      if (!validTypes.includes(mappedType)) {
         throw new Error('Tipo de reclutamiento no válido');
       }
 
       // Crear el reclutamiento
       const recruitment = await Recruitment.create(
         {
-          type: recruitmentType,
+          type: mappedType,
           entityId,
           state: 'PENDIENTE',
+          description: data.description || 'Descripción del reclutamiento',
+          date: data.date || new Date(),
+          options: data.options || 'Opciones por defecto',
+          progress: data.progress || 0,
           createdBy
         },
         { transaction: t }
@@ -55,8 +75,8 @@ const RecruitmentService = {
           salaryRangeFrom: profileData.salaryRangeFrom,
           salaryRangeTo: profileData.salaryRangeTo,
           bonuses: profileData.bonuses,
-          paymentFrequency: profileData.paymentFrequency,
-          benefits: profileData.benefits,
+          paymentFrequency: mappedPaymentFrequency,
+          benefits: typeof profileData.benefits === 'object' ? JSON.stringify(profileData.benefits) : profileData.benefits,
           // Experiencia laboral
           experienceTime: profileData.experienceTime,
           positionExperience: profileData.positionExperience,
@@ -80,28 +100,25 @@ const RecruitmentService = {
         { transaction: t }
       );
 
-      await t.commit();
+      return recruitment.id;
+    });
 
-      // Retornar los datos creados con las relaciones
-      const result = await Recruitment.findByPk(recruitment.id, {
-        include: [
-          {
-            model: ProfileUp,
-            as: 'profileUps'
-          },
-          {
-            model: Entity,
-            as: 'entity',
-            attributes: ['id', 'name', 'ruc']
-          }
-        ]
-      });
+    // Retornar los datos creados con las relaciones (fuera de la transacción)
+    const finalResult = await Recruitment.findByPk(result, {
+      include: [
+        {
+          model: ProfileUp,
+          as: 'profileUps'
+        },
+        {
+          model: Entity,
+          as: 'entity',
+          attributes: ['id', 'type', 'documentNumber', 'firstName', 'paternalSurname', 'maternalSurname', 'businessName']
+        }
+      ]
+    });
 
-      return result;
-    } catch (error) {
-      await t.rollback();
-      throw error;
-    }
+    return finalResult;
   },
 
   async getRecruitments(filters = {}) {
@@ -127,7 +144,7 @@ const RecruitmentService = {
           {
             model: Entity,
             as: 'entity',
-            attributes: ['id', 'name', 'ruc']
+            attributes: ['id', 'type', 'documentNumber', 'firstName', 'paternalSurname', 'maternalSurname', 'businessName']
           }
         ],
         order: [['createdAt', 'DESC']]
@@ -150,7 +167,7 @@ const RecruitmentService = {
           {
             model: Entity,
             as: 'entity',
-            attributes: ['id', 'name', 'ruc']
+            attributes: ['id', 'type', 'documentNumber', 'firstName', 'paternalSurname', 'maternalSurname', 'businessName']
           }
         ]
       });
@@ -201,27 +218,57 @@ const RecruitmentService = {
 
   async getProfileUpByRecruitmentId(recruitmentId) {
     try {
-      const profileUp = await ProfileUp.findOne({
-        where: { recruitmentId },
-        include: [
-          {
-            model: Recruitment,
-            as: 'recruitment',
-            include: [
-              {
-                model: Entity,
-                as: 'entity',
-                attributes: ['id', 'name', 'ruc']
-              }
-            ]
-          }
-        ]
+      const recruitment = await Recruitment.findByPk(recruitmentId, {
+        include: [{
+          model: ProfileUp,
+          as: 'profileUp'
+        }]
       });
 
-      return profileUp;
+      if (!recruitment) {
+        throw new Error('Reclutamiento no encontrado');
+      }
+
+      return recruitment.profileUp;
     } catch (error) {
+      console.error('Error al obtener ProfileUp por ID de reclutamiento:', error);
       throw error;
     }
+  },
+
+  async deleteRecruitment(recruitmentId) {
+    const result = await withTransaction(async (t) => {
+      // Buscar el reclutamiento con sus perfiles asociados
+      const recruitment = await Recruitment.findByPk(recruitmentId, {
+        include: [{
+          model: ProfileUp,
+          as: 'profileUps'
+        }],
+        transaction: t
+      });
+
+      if (!recruitment) {
+        return false;
+      }
+
+      // Eliminar los perfiles asociados si existen
+      if (recruitment.profileUps && recruitment.profileUps.length > 0) {
+        await ProfileUp.destroy({
+          where: { recruitmentId: recruitmentId },
+          transaction: t
+        });
+      }
+
+      // Eliminar el reclutamiento
+      await Recruitment.destroy({
+        where: { id: recruitmentId },
+        transaction: t
+      });
+
+      return true;
+    });
+
+    return result;
   }
 };
 

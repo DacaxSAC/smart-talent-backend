@@ -244,9 +244,82 @@ router.get('/:id', [
  *       500:
  *         description: Error interno del servidor
  */
+/**
+ * @swagger
+ * /recruitments/entity/{entityId}:
+ *   get:
+ *     summary: Obtener reclutamientos por entidad
+ *     tags: [Recruitments]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: entityId
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: ID de la entidad
+ *       - in: query
+ *         name: status
+ *         schema:
+ *           type: string
+ *         description: Filtrar por estado del reclutamiento
+ *     responses:
+ *       200:
+ *         description: Reclutamientos de la entidad obtenidos exitosamente
+ *       400:
+ *         description: ID de entidad requerido
+ *       500:
+ *         description: Error interno del servidor
+ */
+router.get('/entity/:entityId', [
+  authMiddleware,
+  roleMiddleware(['ADMIN', 'USER', 'RECRUITER'])
+], RecruitmentController.getRecruitmentsByEntity);
+
 router.patch('/:id/status', [
   authMiddleware,
   roleMiddleware(['ADMIN', 'RECRUITER'])
 ], RecruitmentController.updateRecruitmentStatus);
+
+/**
+ * @swagger
+ * /recruitments/{id}:
+ *   delete:
+ *     summary: Eliminar un reclutamiento
+ *     tags: [Recruitments]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: ID del reclutamiento a eliminar
+ *     responses:
+ *       200:
+ *         description: Reclutamiento eliminado exitosamente
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: Reclutamiento eliminado exitosamente
+ *       404:
+ *         description: Reclutamiento no encontrado
+ *       401:
+ *         description: No autorizado
+ *       403:
+ *         description: Acceso denegado
+ *       500:
+ *         description: Error del servidor
+ */
+router.delete('/:id', [
+  authMiddleware,
+  roleMiddleware(['ADMIN', 'RECRUITER', 'USER'])
+], RecruitmentController.deleteRecruitment);
 
 module.exports = router;

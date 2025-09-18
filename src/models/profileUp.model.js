@@ -44,6 +44,23 @@ module.exports = (sequelize) => {
         type: DataTypes.STRING,
         allowNull: true,
       },
+      // Campos adicionales del formulario
+      requestedBy: {
+        type: DataTypes.STRING,
+        allowNull: true,
+      },
+      positionNature: {
+        type: DataTypes.STRING,
+        allowNull: true,
+      },
+      requiredPersonnelType: {
+        type: DataTypes.STRING,
+        allowNull: true,
+      },
+      callType: {
+        type: DataTypes.STRING,
+        allowNull: true,
+      },
       
       // Especificaciones del puesto
       contractConditions: {
