@@ -1,39 +1,37 @@
-const { FirebaseInstallationsError } = require("firebase-admin/installations");
 const { Model, DataTypes } = require("sequelize");
 
 module.exports = (sequelize) => {
   class Recruitment extends Model {
-    //Una entidad puede tener muchos reclutamiento, pero un reclutamiento solo es de una entidade
+    //Una entidad puede tener muchos reclutamiento.
     static associate(models) {
       Recruitment.belongsTo(models.Entity, {
         foreignKey: "entityId",
         as: "entity",
+      });
+
+      // Relación con TypeRecruitment
+      Recruitment.belongsTo(models.TypeRecruitment, {
+        foreignKey: "typeRecruitmentId",
+        as: "typeRecruitment",
       });
     }
   }
 
   Recruitment.init(
     {
-      type: {
-        type: DataTypes.ENUM(
-          "RECLUTAMIENTO REGULAR",
-          "HUNTING EJECUTIVO",
-          "RECLUTAMIENTO MASIVO"
-        ),
+      typeRecruitmentId: {
+        type: DataTypes.INTEGER,
         allowNull: false,
+        references: {
+          model: "TypeRecruitments",
+          key: "id",
+        },
         validate: {
           notNull: {
-            msg: "El tipo de reclutamiento es requerido",
+            msg: "Debe seleccionar un tipo de reclutamiento",
           },
-          isIn: {
-            args: [
-              [
-                "RECLUTAMIENTO REGULAR",
-                "HUNTING EJECUTIVO",
-                "RECLUTAMIENTO MASIVO",
-              ],
-            ],
-            msg: "El tipo de reclutamiento debe ser REGULAR o EJECUTIVO o MASIVO",
+          isInt: {
+            msg: "El tipo de reclutamiento debe ser un ID válido",
           },
         },
       },
@@ -62,15 +60,6 @@ module.exports = (sequelize) => {
               ],
             ],
             msg: "El tipo de estado de reclutamiento debe ser PENDIENTE o OBSERVACIÓN o EN PROCESO o VERIFICACIÓN o TERMINADO",
-          },
-        },
-      },
-      description: {
-        type: DataTypes.STRING,
-        allowNull: false,
-        validate: {
-          notNull: {
-            msg: "El tipo de estado de reclutamiento es requerido",
           },
         },
       },
