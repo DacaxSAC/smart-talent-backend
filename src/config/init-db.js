@@ -4,6 +4,7 @@ const {
   Role,
   User,
   DocumentType,
+  TypeRecruitment,
   ResourceType,
 } = require("../models");
 const EntityService = require("../services/entity.service");
@@ -48,6 +49,42 @@ const initDatabase = async () => {
       }
     }
     console.log("Verificación de roles completada");
+
+    // Crear tipos de reclutamiento con sus descripciones
+    const recruitmentTypes = [
+      {
+        type: "RECLUTAMIENTO REGULAR",
+        description:
+          "Proceso de reclutamiento estándar para posiciones generales.",
+      },
+      {
+        type: "HUNTING EJECUTIVO",
+        description:
+          "Búsqueda activa de candidatos para posiciones ejecutivas.",
+      },
+      {
+        type: "RECLUTAMIENTO MASIVO",
+        description:
+          "Proceso de reclutamiento para un gran volumen de candidatos.",
+      },
+    ];
+
+    const createdTypes = [];
+    for (const typeData of recruitmentTypes) {
+      const [typeRecruitment, created] = await TypeRecruitment.findOrCreate({
+        where: { type: typeData.type },
+        defaults: typeData,
+      });
+      createdTypes.push(typeRecruitment);
+      if (created) {
+        console.log(
+          `Tipo de reclutamiento ${typeData.type} creado exitosamente`
+        );
+      } else {
+        console.log(`Tipo de reclutamiento ${typeData.type} ya existe`);
+      }
+    }
+    console.log("Verificación de tipos de reclutamiento completada");
 
     // Crear usuarios para cada rol
     const usersData = [
