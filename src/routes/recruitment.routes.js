@@ -1,7 +1,10 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
-const RecruitmentController = require('../controllers/recruitment.controller');
-const { authMiddleware, roleMiddleware } = require('../middleware/auth.middleware');
+const RecruitmentController = require("../controllers/recruitment.controller");
+const {
+  authMiddleware,
+  roleMiddleware,
+} = require("../middleware/auth.middleware");
 
 /**
  * @swagger
@@ -142,10 +145,11 @@ const { authMiddleware, roleMiddleware } = require('../middleware/auth.middlewar
  *       500:
  *         description: Error interno del servidor
  */
-router.post('/', [
-  authMiddleware,
-  roleMiddleware(['ADMIN', 'USER'])
-], RecruitmentController.createRecruitmentWithProfile);
+router.post(
+  "/",
+  [authMiddleware, roleMiddleware(["ADMIN", "USER"])],
+  RecruitmentController.createRecruitmentWithProfile
+);
 
 /**
  * @swagger
@@ -173,10 +177,11 @@ router.post('/', [
  *       500:
  *         description: Error interno del servidor
  */
-router.get('/', [
-  authMiddleware,
-  roleMiddleware(['ADMIN', 'USER', 'RECRUITER'])
-], RecruitmentController.getRecruitments);
+router.get(
+  "/",
+  [authMiddleware, roleMiddleware(["ADMIN", "USER", "RECRUITER"])],
+  RecruitmentController.getRecruitments
+);
 
 /**
  * @swagger
@@ -201,10 +206,11 @@ router.get('/', [
  *       500:
  *         description: Error interno del servidor
  */
-router.get('/:id', [
-  authMiddleware,
-  roleMiddleware(['ADMIN', 'USER', 'RECRUITER'])
-], RecruitmentController.getRecruitmentById);
+router.get(
+  "/:id",
+  [authMiddleware, roleMiddleware(["ADMIN", "USER", "RECRUITER"])],
+  RecruitmentController.getRecruitmentById
+);
 
 /**
  * @swagger
@@ -272,15 +278,32 @@ router.get('/:id', [
  *       500:
  *         description: Error interno del servidor
  */
-router.get('/entity/:entityId', [
-  authMiddleware,
-  roleMiddleware(['ADMIN', 'USER', 'RECRUITER'])
-], RecruitmentController.getRecruitmentsByEntity);
 
-router.patch('/:id/status', [
-  authMiddleware,
-  roleMiddleware(['ADMIN', 'RECRUITER'])
-], RecruitmentController.updateRecruitmentStatus);
+//Se puede poner más roles
+router.get(
+  "/state/:stateFilter",
+  ["ADMIN"],
+  RecruitmentController.getRecruitmentsByStateGroup
+);
+
+//Se puede poner más roles
+router.get(
+  "/clients-state/:state",
+  ["ADMIN"],
+  RecruitmentController.getClientNamesByState
+);
+
+router.get(
+  "/entity/:entityId",
+  [authMiddleware, roleMiddleware(["ADMIN", "USER", "RECRUITER"])],
+  RecruitmentController.getRecruitmentsByEntity
+);
+
+router.patch(
+  "/:id/status",
+  [authMiddleware, roleMiddleware(["ADMIN", "RECRUITER"])],
+  RecruitmentController.updateRecruitmentStatus
+);
 
 /**
  * @swagger
@@ -317,9 +340,10 @@ router.patch('/:id/status', [
  *       500:
  *         description: Error del servidor
  */
-router.delete('/:id', [
-  authMiddleware,
-  roleMiddleware(['ADMIN', 'RECRUITER', 'USER'])
-], RecruitmentController.deleteRecruitment);
+router.delete(
+  "/:id",
+  [authMiddleware, roleMiddleware(["ADMIN", "RECRUITER", "USER"])],
+  RecruitmentController.deleteRecruitment
+);
 
 module.exports = router;

@@ -1,7 +1,7 @@
-const { Recruitment, ProfileUp, Entity } = require('../models');
-const { sequelize } = require('../config/database');
-const { Op } = require('sequelize');
-const { withTransaction, canRollback } = require('../utils/transactionHelper');
+const { Recruitment, ProfileUp, Entity } = require("../models");
+const { sequelize } = require("../config/database");
+const { Op } = require("sequelize");
+const { withTransaction, canRollback } = require("../utils/transactionHelper");
 
 const RecruitmentService = {
   async createRecruitmentWithProfile(data) {
@@ -11,32 +11,37 @@ const RecruitmentService = {
       // Verificar que la entidad existe
       const entity = await Entity.findByPk(entityId, { transaction: t });
       if (!entity) {
-        throw new Error('Entidad no encontrada');
+        throw new Error("Entidad no encontrada");
       }
 
       // Mapear tipos de reclutamiento del frontend al backend
       const typeMapping = {
-        'regular': 'RECLUTAMIENTO REGULAR',
-        'executive': 'HUNTING EJECUTIVO',
-        'massive': 'RECLUTAMIENTO MASIVO'
+        regular: "RECLUTAMIENTO REGULAR",
+        executive: "HUNTING EJECUTIVO",
+        massive: "RECLUTAMIENTO MASIVO",
       };
 
       const mappedType = typeMapping[recruitmentType] || recruitmentType;
 
       // Mapeo de frecuencia de pago
       const paymentFrequencyMapping = {
-        'semanal': 'SEMANAL',
-        'quincenal': 'QUINCENAL',
-        'mensual': 'MENSUAL'
+        semanal: "SEMANAL",
+        quincenal: "QUINCENAL",
+        mensual: "MENSUAL",
       };
-      const mappedPaymentFrequency = profileData.paymentFrequency ? 
-        (paymentFrequencyMapping[profileData.paymentFrequency.toLowerCase()] || profileData.paymentFrequency) : 
-        profileData.paymentFrequency;
+      const mappedPaymentFrequency = profileData.paymentFrequency
+        ? paymentFrequencyMapping[profileData.paymentFrequency.toLowerCase()] ||
+          profileData.paymentFrequency
+        : profileData.paymentFrequency;
 
       // Validar tipo de reclutamiento
-      const validTypes = ['RECLUTAMIENTO REGULAR', 'HUNTING EJECUTIVO', 'RECLUTAMIENTO MASIVO'];
+      const validTypes = [
+        "RECLUTAMIENTO REGULAR",
+        "HUNTING EJECUTIVO",
+        "RECLUTAMIENTO MASIVO",
+      ];
       if (!validTypes.includes(mappedType)) {
-        throw new Error('Tipo de reclutamiento no válido');
+        throw new Error("Tipo de reclutamiento no válido");
       }
 
       // Crear el reclutamiento
@@ -44,12 +49,12 @@ const RecruitmentService = {
         {
           type: mappedType,
           entityId,
-          state: 'PENDIENTE',
-          description: data.description || 'Descripción del reclutamiento',
+          state: "PENDIENTE",
+          description: data.description || "Descripción del reclutamiento",
           date: data.date || new Date(),
-          options: data.options || 'Opciones por defecto',
+          options: data.options || "Opciones por defecto",
           progress: data.progress || 0,
-          createdBy
+          createdBy,
         },
         { transaction: t }
       );
@@ -76,7 +81,10 @@ const RecruitmentService = {
           salaryRangeTo: profileData.salaryRangeTo,
           bonuses: profileData.bonuses,
           paymentFrequency: mappedPaymentFrequency,
-          benefits: typeof profileData.benefits === 'object' ? JSON.stringify(profileData.benefits) : profileData.benefits,
+          benefits:
+            typeof profileData.benefits === "object"
+              ? JSON.stringify(profileData.benefits)
+              : profileData.benefits,
           // Experiencia laboral
           experienceTime: profileData.experienceTime,
           positionExperience: profileData.positionExperience,
@@ -94,8 +102,8 @@ const RecruitmentService = {
           languages: profileData.languages || [],
           computerSkills: profileData.computerSkills || [],
           // Estado y auditoría
-          status: 'COMPLETADO',
-          createdBy
+          status: "COMPLETADO",
+          createdBy,
         },
         { transaction: t }
       );
@@ -108,14 +116,22 @@ const RecruitmentService = {
       include: [
         {
           model: ProfileUp,
-          as: 'profileUps'
+          as: "profileUps",
         },
         {
           model: Entity,
-          as: 'entity',
-          attributes: ['id', 'type', 'documentNumber', 'firstName', 'paternalSurname', 'maternalSurname', 'businessName']
-        }
-      ]
+          as: "entity",
+          attributes: [
+            "id",
+            "type",
+            "documentNumber",
+            "firstName",
+            "paternalSurname",
+            "maternalSurname",
+            "businessName",
+          ],
+        },
+      ],
     });
 
     return finalResult;
@@ -139,15 +155,23 @@ const RecruitmentService = {
         include: [
           {
             model: ProfileUp,
-            as: 'profileUps'
+            as: "profileUps",
           },
           {
             model: Entity,
-            as: 'entity',
-            attributes: ['id', 'type', 'documentNumber', 'firstName', 'paternalSurname', 'maternalSurname', 'businessName']
-          }
+            as: "entity",
+            attributes: [
+              "id",
+              "type",
+              "documentNumber",
+              "firstName",
+              "paternalSurname",
+              "maternalSurname",
+              "businessName",
+            ],
+          },
         ],
-        order: [['createdAt', 'DESC']]
+        order: [["createdAt", "DESC"]],
       });
 
       return recruitments;
@@ -162,14 +186,22 @@ const RecruitmentService = {
         include: [
           {
             model: ProfileUp,
-            as: 'profileUps'
+            as: "profileUps",
           },
           {
             model: Entity,
-            as: 'entity',
-            attributes: ['id', 'type', 'documentNumber', 'firstName', 'paternalSurname', 'maternalSurname', 'businessName']
-          }
-        ]
+            as: "entity",
+            attributes: [
+              "id",
+              "type",
+              "documentNumber",
+              "firstName",
+              "paternalSurname",
+              "maternalSurname",
+              "businessName",
+            ],
+          },
+        ],
       });
 
       return recruitment;
@@ -178,18 +210,195 @@ const RecruitmentService = {
     }
   },
 
+  //Método creado para obtener los reclutamientos por estado
+  async getRecruitmentsByStateGroup(stateFilter) {
+    try {
+      let whereClause = {};
+
+      // Definir qué estados incluir según el filtro
+      switch (stateFilter) {
+        case "PENDIENTE":
+          whereClause.state = "PENDIENTE";
+          break;
+        case "EN_PROCESO":
+          whereClause.state = {
+            [Op.in]: ["OBSERVACIÓN", "EN PROCESO", "VERIFICACIÓN"],
+          };
+          break;
+        case "TERMINADO":
+          whereClause.state = "TERMINADO";
+          break;
+        default:
+          // Si no se especifica filtro, traer todos
+          break;
+      }
+
+      const recruitments = await Recruitment.findAll({
+        where: whereClause,
+        include: [
+          {
+            model: Entity,
+            as: "entity",
+            attributes: [
+              "id",
+              "type",
+              "documentNumber",
+              "firstName",
+              "paternalSurname",
+              "maternalSurname",
+              "businessName",
+            ],
+          },
+          {
+            model: ProfileUp,
+            as: "profileUps",
+            attributes: ["id", "positionName", "area"],
+          },
+        ],
+        order: [["createdAt", "DESC"]],
+      });
+
+      // Transformar los datos para incluir el nombre completo del cliente
+      const transformedRecruitments = recruitments.map((recruitment) => {
+        const entity = recruitment.entity;
+        let clientName = "";
+
+        if (entity) {
+          if (entity.type === "NATURAL") {
+            clientName = `${entity.firstName || ""} ${
+              entity.paternalSurname || ""
+            } ${entity.maternalSurname || ""}`.trim();
+          } else if (entity.type === "JURIDICA") {
+            clientName = entity.businessName || "";
+          }
+        }
+
+        return {
+          id: recruitment.id,
+          state: recruitment.state,
+          date: recruitment.date,
+          progress: recruitment.progress,
+          options: recruitment.options,
+          createdAt: recruitment.createdAt,
+          updatedAt: recruitment.updatedAt,
+          client: {
+            id: entity?.id,
+            name: clientName,
+            documentNumber: entity?.documentNumber,
+            type: entity?.type,
+          },
+          profileUps: recruitment.profileUps || [],
+        };
+      });
+
+      return transformedRecruitments;
+    } catch (error) {
+      console.error("Error al obtener reclutamientos por estado:", error);
+      throw error;
+    }
+  },
+
+  //Método para obtener los clientes por estado
+  async getClientNamesByState(state) {
+    try {
+      let whereClause = {};
+
+      switch (state) {
+        case "PENDIENTE":
+          whereClause.state = "PENDIENTE";
+          break;
+        case "EN_PROCESO":
+          whereClause.state = {
+            [Op.in]: ["OBSERVACIÓN", "EN PROCESO", "VERIFICACIÓN"],
+          };
+          break;
+        case "TERMINADO":
+          whereClause.state = "TERMINADO";
+          break;
+        default:
+          throw new Error("Estado no válido");
+      }
+
+      const recruitments = await Recruitment.findAll({
+        where: whereClause,
+        include: [
+          {
+            model: Entity,
+            as: "entity",
+            attributes: [
+              "id",
+              "type",
+              "documentNumber",
+              "firstName",
+              "paternalSurname",
+              "maternalSurname",
+              "businessName",
+            ],
+          },
+        ],
+        attributes: ["id", "state", "createdAt"],
+      });
+
+      // Extraer solo los nombres de los clientes (sin duplicados)
+      const clientNames = recruitments.map((recruitment) => {
+        const entity = recruitment.entity;
+        let clientName = "";
+
+        if (entity) {
+          if (entity.type === "NATURAL") {
+            clientName = `${entity.firstName || ""} ${
+              entity.paternalSurname || ""
+            } ${entity.maternalSurname || ""}`.trim();
+          } else if (entity.type === "JURIDICA") {
+            clientName = entity.businessName || "";
+          }
+        }
+
+        return {
+          clientId: entity?.id,
+          clientName: clientName,
+          documentNumber: entity?.documentNumber,
+          recruitmentId: recruitment.id,
+          recruitmentDate: recruitment.createdAt,
+        };
+      });
+
+      // Eliminar duplicados basados en clientId
+      const uniqueClients = clientNames.reduce((acc, current) => {
+        const existingClient = acc.find(
+          (client) => client.clientId === current.clientId
+        );
+        if (!existingClient) {
+          acc.push(current);
+        }
+        return acc;
+      }, []);
+
+      return uniqueClients;
+    } catch (error) {
+      console.error("Error al obtener nombres de clientes por estado:", error);
+      throw error;
+    }
+  },
+
   async updateRecruitmentStatus(recruitmentId, newStatus) {
     try {
-      const validStatuses = ['PENDIENTE', 'OBSERVACIÓN', 'EN PROCESO', 'VERIFICACIÓN', 'TERMINADO'];
-      
+      const validStatuses = [
+        "PENDIENTE",
+        "OBSERVACIÓN",
+        "EN PROCESO",
+        "VERIFICACIÓN",
+        "TERMINADO",
+      ];
+
       if (!validStatuses.includes(newStatus)) {
-        throw new Error('Estado no válido');
+        throw new Error("Estado no válido");
       }
 
       const recruitment = await Recruitment.findByPk(recruitmentId);
-      
+
       if (!recruitment) {
-        throw new Error('Reclutamiento no encontrado');
+        throw new Error("Reclutamiento no encontrado");
       }
 
       recruitment.state = newStatus;
@@ -200,14 +409,14 @@ const RecruitmentService = {
         include: [
           {
             model: ProfileUp,
-            as: 'profileUps'
+            as: "profileUps",
           },
           {
             model: Entity,
-            as: 'entity',
-            attributes: ['id', 'name', 'ruc']
-          }
-        ]
+            as: "entity",
+            attributes: ["id", "name", "ruc"],
+          },
+        ],
       });
 
       return updatedRecruitment;
@@ -219,19 +428,24 @@ const RecruitmentService = {
   async getProfileUpByRecruitmentId(recruitmentId) {
     try {
       const recruitment = await Recruitment.findByPk(recruitmentId, {
-        include: [{
-          model: ProfileUp,
-          as: 'profileUp'
-        }]
+        include: [
+          {
+            model: ProfileUp,
+            as: "profileUp",
+          },
+        ],
       });
 
       if (!recruitment) {
-        throw new Error('Reclutamiento no encontrado');
+        throw new Error("Reclutamiento no encontrado");
       }
 
       return recruitment.profileUp;
     } catch (error) {
-      console.error('Error al obtener ProfileUp por ID de reclutamiento:', error);
+      console.error(
+        "Error al obtener ProfileUp por ID de reclutamiento:",
+        error
+      );
       throw error;
     }
   },
@@ -240,11 +454,13 @@ const RecruitmentService = {
     const result = await withTransaction(async (t) => {
       // Buscar el reclutamiento con sus perfiles asociados
       const recruitment = await Recruitment.findByPk(recruitmentId, {
-        include: [{
-          model: ProfileUp,
-          as: 'profileUps'
-        }],
-        transaction: t
+        include: [
+          {
+            model: ProfileUp,
+            as: "profileUps",
+          },
+        ],
+        transaction: t,
       });
 
       if (!recruitment) {
@@ -255,21 +471,21 @@ const RecruitmentService = {
       if (recruitment.profileUps && recruitment.profileUps.length > 0) {
         await ProfileUp.destroy({
           where: { recruitmentId: recruitmentId },
-          transaction: t
+          transaction: t,
         });
       }
 
       // Eliminar el reclutamiento
       await Recruitment.destroy({
         where: { id: recruitmentId },
-        transaction: t
+        transaction: t,
       });
 
       return true;
     });
 
     return result;
-  }
+  },
 };
 
 module.exports = RecruitmentService;
