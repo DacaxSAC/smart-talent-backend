@@ -282,14 +282,14 @@ router.get(
 //Se puede poner más roles
 router.get(
   "/state/:stateFilter",
-  ["ADMIN"],
+  [authMiddleware, roleMiddleware(["ADMIN"])],
   RecruitmentController.getRecruitmentsByStateGroup
 );
 
 //Se puede poner más roles
 router.get(
   "/clients-state/:state",
-  ["ADMIN"],
+  [authMiddleware, roleMiddleware(["ADMIN"])],
   RecruitmentController.getClientNamesByState
 );
 
